@@ -1,1 +1,1 @@
-Application for creating and reading ISO files
+Application for creating and reading ISO files, with DiscUtils Package
