@@ -209,62 +209,40 @@ namespace IsoCreatorWpf
             {
                 bool isDir = cd.GetAttributes(entry).HasFlag(FileAttributes.Directory);
 
-                // Determina l'icona in base al tipo
-                string iconPath = "pack://application:,,,/Images/file.png";
+                // Mostra SOLO le cartelle nella TreeView
                 if (isDir)
                 {
-                    iconPath = "pack://application:,,,/Images/folder.png";
-                }
-                else
-                {
-                    string ext = Path.GetExtension(entry).ToLower().Split(';')[0];
-                    switch (ext)
+                    string iconPath = "pack://application:,,,/Images/folder.png";
+
+                    StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
+                    sp.Children.Add(new Image
                     {
-                        case ".iso": iconPath = "pack://application:,,,/Images/iso.png"; break;
-                        case ".pdf": iconPath = "pack://application:,,,/Images/pdf.png"; break;
-                        case ".doc":
-                        case ".docx": iconPath = "pack://application:,,,/Images/doc.png"; break;
-                        case ".xls":
-                        case ".xlsx": iconPath = "pack://application:,,,/Images/xls.png"; break;
-                        case ".txt": iconPath = "pack://application:,,,/Images/txt.png"; break;
-                        case ".rar":
-                        case ".zip": iconPath = "pack://application:,,,/Images/rar.png"; break;
-                        case ".jpg":
-                        case ".tif":
-                        case ".bmp": iconPath = "pack://application:,,,/Images/jpg.png"; break;
-                    }
-                }
+                        Width = 16,
+                        Height = 16,
+                        Margin = new Thickness(0, 0, 5, 0),
+                        Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath))
+                    });
 
-                // StackPanel con icona + testo
-                StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
-                sp.Children.Add(new Image
-                {
-                    Width = 16,
-                    Height = 16,
-                    Margin = new Thickness(0, 0, 5, 0),
-                    Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath))
-                });
+                    string displayName = Path.GetFileName(entry);
+                    if (displayName.Contains(";"))
+                        displayName = displayName.Substring(0, displayName.IndexOf(";"));
 
-                // Nome file/cartella ripulito da ;1
-                string displayName = Path.GetFileName(entry);
-                if (displayName.Contains(";"))
-                    displayName = displayName.Substring(0, displayName.IndexOf(";"));
+                    sp.Children.Add(new TextBlock { Text = displayName });
 
-                sp.Children.Add(new TextBlock { Text = displayName });
+                    TreeViewItem item = new TreeViewItem
+                    {
+                        Header = sp,
+                        Tag = entry
+                    };
 
-                // 🔑 Salva nel Tag il percorso interno dell’ISO
-                TreeViewItem item = new TreeViewItem
-                {
-                    Header = sp,
-                    Tag = entry
-                };
+                    parentItem.Items.Add(item);
 
-                parentItem.Items.Add(item);
-
-                if (isDir)
+                    // Ricorsione solo per cartelle
                     AddEntries(cd, entry, item);
+                }
             }
         }
+
 
         private void isoTreeView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -293,6 +271,60 @@ namespace IsoCreatorWpf
                         }
 
                         Process.Start(new ProcessStartInfo(tempPath) { UseShellExecute = true });
+                    }
+                }
+            }
+        }
+
+        private void isoTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (isoTreeView.SelectedItem is TreeViewItem selectedItem && selectedItem.Tag is string entryPath)
+            {
+                detailsListView.Items.Clear();
+
+                using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
+                {
+                    CDReader cd = new CDReader(fs, true);
+
+                    if (cd.GetAttributes(entryPath).HasFlag(FileAttributes.Directory))
+                    {
+                        var subEntries = cd.GetFileSystemEntries(entryPath);
+
+                        // 🔑 Prima le cartelle
+                        var dirs = subEntries.Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory));
+                        var files = subEntries.Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory));
+
+                        foreach (var subEntry in dirs.Concat(files))
+                        {
+                            bool isDir = cd.GetAttributes(subEntry).HasFlag(FileAttributes.Directory);
+
+                            string displayName = Path.GetFileName(subEntry);
+                            if (displayName.Contains(";"))
+                                displayName = displayName.Substring(0, displayName.IndexOf(";"));
+
+                            long size = 0;
+                            if (!isDir)
+                            {
+                                using (Stream s = cd.OpenFile(subEntry, FileMode.Open))
+                                {
+                                    size = s.Length;
+                                }
+                            }
+
+                            string sizeText = isDir ? "" : $"{Math.Round(size / 1024.0, 2)} KB";
+
+                            string iconPath = isDir
+                                ? "pack://application:,,,/Images/folder.png"
+                                : "pack://application:,,,/Images/file.png";
+
+                            detailsListView.Items.Add(new
+                            {
+                                Name = displayName,
+                                Type = isDir ? "Cartella" : "File",
+                                Size = sizeText,
+                                Icon = iconPath
+                            });
+                        }
                     }
                 }
             }
