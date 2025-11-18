@@ -1,0 +1,52 @@
+﻿<Window x:Class="IsoCreatorWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ISO Creator" Height="600" Width="800" WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Sorgente -->
+            <RowDefinition Height="Auto"/>
+            <!-- Destinazione -->
+            <RowDefinition Height="Auto"/>
+            <!-- Nome ISO -->
+            <RowDefinition Height="Auto"/>
+            <!-- Bottoni -->
+            <RowDefinition Height="Auto"/>
+            <!-- ProgressBar -->
+            <RowDefinition Height="*"/>
+            <!-- TreeView -->
+        </Grid.RowDefinitions>
+
+        <!-- Cartella sorgente -->
+        <StackPanel Orientation="Horizontal" Margin="0,5">
+            <TextBox x:Name="txtSourceFolder" Width="280" IsReadOnly="True"/>
+            <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Margin="5,0,0,0" Click="btnSelectSource_Click"/>
+        </StackPanel>
+
+        <!-- Cartella destinazione -->
+        <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="1">
+            <TextBox x:Name="txtDestFolder" Width="280" IsReadOnly="True"/>
+            <Button x:Name="btnSelectDest" Content="Destinazione" Width="95" Margin="5,0,0,0" Click="btnSelectDest_Click"/>
+        </StackPanel>
+
+        <!-- Nome file ISO -->
+        <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="2">
+            <Label Content="Nome ISO:" Width="80"/>
+            <TextBox x:Name="txtIsoName" Width="200"/>
+        </StackPanel>
+
+        <!-- Bottoni -->
+        <Button x:Name="btnCreateIso" Content="Crea ISO" Grid.Row="3" Width="95" Height="30"
+                HorizontalAlignment="Left" Click="btnCreateIso_Click" Margin="0,5,0,5"/>
+        <Button x:Name="btnOpenIso" Content="Apri ISO" Grid.Row="3" Width="95" Height="30"
+                HorizontalAlignment="Left" Click="btnOpenIso_Click" Margin="110,5,0,5"/>
+
+        <!-- ProgressBar -->
+        <ProgressBar x:Name="progressBar" Grid.Row="4" Height="25" Minimum="0" Maximum="100"/>
+
+        <!-- TreeView per contenuto ISO -->
+        <TreeView x:Name="isoTreeView" Grid.Row="5" Margin="0,10,0,0" MouseDoubleClick="isoTreeView_MouseDoubleClick"/>
+
+    </Grid>
+</Window>
