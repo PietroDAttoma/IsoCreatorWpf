@@ -19,6 +19,7 @@
     <None Remove="Images\doc.png" />
     <None Remove="Images\file.png" />
     <None Remove="Images\folder.png" />
+    <None Remove="Images\iso.png" />
     <None Remove="Images\jpg.png" />
     <None Remove="Images\pdf.png" />
     <None Remove="Images\rar.png" />
@@ -39,6 +40,9 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\folder.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\iso.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\jpg.png">
