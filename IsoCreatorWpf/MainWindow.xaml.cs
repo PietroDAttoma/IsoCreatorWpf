@@ -12,7 +12,7 @@ namespace IsoCreatorWpf
     {
         private string sourceFolder = string.Empty;
         private string destFolder = string.Empty;
-        private string currentIsoPath; // memorizza l'ISO aperto
+        private string? currentIsoPath; // memorizza l'ISO aperto
 
         public MainWindow()
         {

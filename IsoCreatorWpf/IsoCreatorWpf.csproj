@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <!-- 🔧 Disabilita la validazione piattaforma Windows -->
+    <EnableWindowsTargetPlatformValidation>false</EnableWindowsTargetPlatformValidation>
   </PropertyGroup>
 
   <ItemGroup>
