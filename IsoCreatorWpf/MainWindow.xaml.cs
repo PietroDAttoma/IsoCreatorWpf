@@ -23,7 +23,49 @@ namespace IsoCreatorWpf
 
             // Default: nome file ISO
             txtIsoName.Text = "OUTPUT";
+
+            // Crea la root iniziale
+            CreateIsoRoot();
         }
+
+        private void CreateIsoRoot()
+        {
+            // 🔑 Data e ora attuale nel formato richiesto
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
+
+            // 🔑 StackPanel con icona + testo
+            StackPanel rootPanel = new StackPanel { Orientation = Orientation.Horizontal };
+
+            Image isoIcon = new Image
+            {
+                Width = 16,
+                Height = 16,
+                Margin = new Thickness(0, 0, 5, 0),
+                Source = new System.Windows.Media.Imaging.BitmapImage(
+                    new Uri("pack://application:,,,/Images/iso.png"))
+            };
+
+            TextBlock isoName = new TextBlock
+            {
+                Text = timestamp,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            rootPanel.Children.Add(isoIcon);
+            rootPanel.Children.Add(isoName);
+
+            // 🔑 Root item con timestamp come Tag (utile per future operazioni)
+            TreeViewItem rootItem = new TreeViewItem
+            {
+                Header = rootPanel,
+                Tag = timestamp
+            };
+
+            // Se vuoi mantenere più root (una per ogni sessione), NON fare Clear()
+            isoTreeView.Items.Clear();
+            isoTreeView.Items.Add(rootItem);
+        }
+
         private void btnSelectSource_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
@@ -36,7 +78,103 @@ namespace IsoCreatorWpf
             {
                 sourceFolder = dialog.FileName;
                 txtSourceFolder.Text = sourceFolder;
+
+                // 🔑 Usa la root già creata con CreateIsoRoot()
+                if (isoTreeView.Items.Count > 0 && isoTreeView.Items[0] is TreeViewItem rootItem)
+                {
+                    rootItem.Items.Clear(); // svuota eventuali contenuti precedenti
+                    AddDirectoryNodes(sourceFolder, rootItem); // aggiungi cartelle e file
+                    rootItem.IsExpanded = true; // espandi la root
+                }
             }
+        }
+
+        private void PopulateTreeView(string sourcePath)
+        {
+            isoTreeView.Items.Clear();
+
+            // Nodo root con icona cartella
+            TreeViewItem rootItem = CreateTreeViewItem(sourcePath, true);
+            isoTreeView.Items.Add(rootItem);
+
+            // Aggiungi contenuti
+            AddDirectoryNodes(sourcePath, rootItem);
+        }
+        private void AddDirectoryNodes(string path, TreeViewItem parentItem)
+        {
+            try
+            {
+                // 🔑 Solo cartelle (ordinate alfabeticamente)
+                var dirs = Directory.GetDirectories(path).OrderBy(d => Path.GetFileName(d).ToLower());
+                foreach (var dir in dirs)
+                {
+                    TreeViewItem dirItem = CreateTreeViewItem(dir, true);
+                    parentItem.Items.Add(dirItem);
+
+                    // Ricorsione: aggiungi sottocartelle
+                    AddDirectoryNodes(dir, dirItem);
+                }
+
+                // ❌ Niente file qui → i file verranno mostrati solo nella detailsListView
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Errore durante la lettura della cartella:\n{ex.Message}",
+                                "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        private TreeViewItem CreateTreeViewItem(string fullPath, bool isDir)
+        {
+            StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
+
+            string iconPath;
+            if (isDir)
+            {
+                iconPath = "pack://application:,,,/Images/folder.png";
+            }
+            else
+            {
+                string ext = Path.GetExtension(fullPath).ToLower();
+                switch (ext)
+                {
+                    case ".txt": iconPath = "pack://application:,,,/Images/txt.png"; break;
+                    case ".doc":
+                    case ".docx": iconPath = "pack://application:,,,/Images/doc.png"; break;
+                    case ".xls":
+                    case ".xlsx": iconPath = "pack://application:,,,/Images/xls.png"; break;
+                    case ".pdf": iconPath = "pack://application:,,,/Images/pdf.png"; break;
+                    case ".jpg":
+                    case ".jpeg":
+                    case ".bmp":
+                    case ".tif":
+                    case ".tiff": iconPath = "pack://application:,,,/Images/jpg.png"; break;
+                    case ".rar":
+                    case ".zip": iconPath = "pack://application:,,,/Images/rar.png"; break;
+                    case ".iso": iconPath = "pack://application:,,,/Images/iso.png"; break;
+                    default: iconPath = "pack://application:,,,/Images/file.png"; break;
+                }
+            }
+
+            Image img = new Image
+            {
+                Width = 16,
+                Height = 16,
+                Margin = new Thickness(0, 0, 5, 0),
+                Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath))
+            };
+
+            TextBlock tb = new TextBlock { Text = Path.GetFileName(fullPath) };
+
+            sp.Children.Add(img);
+            sp.Children.Add(tb);
+
+            return new TreeViewItem
+            {
+                Header = sp,
+                Tag = fullPath
+            };
         }
         private void btnSelectDest_Click(object sender, RoutedEventArgs e)
         {
@@ -292,85 +430,111 @@ namespace IsoCreatorWpf
             {
                 detailsListView.Items.Clear();
 
-                using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
+                // Caso ISO (currentIsoPath valorizzato e file esistente)
+                if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                 {
-                    CDReader cd = new CDReader(fs, true);
-
-                    if (cd.GetAttributes(entryPath).HasFlag(FileAttributes.Directory))
+                    using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                     {
-                        var subEntries = cd.GetFileSystemEntries(entryPath);
+                        CDReader cd = new CDReader(fs, true);
 
-                        // 🔑 Prima le cartelle (ordinate alfabeticamente), poi i file (ordinati alfabeticamente)
-                        var dirs = subEntries
-                            .Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
-                            .OrderBy(se => Path.GetFileName(se).ToLower());
-
-                        var files = subEntries
-                            .Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
-                            .OrderBy(se => Path.GetFileName(se).ToLower());
-
-                        foreach (var subEntry in dirs.Concat(files))
+                        if (cd.GetAttributes(entryPath).HasFlag(FileAttributes.Directory))
                         {
-                            bool isDir = cd.GetAttributes(subEntry).HasFlag(FileAttributes.Directory);
+                            var subEntries = cd.GetFileSystemEntries(entryPath);
 
-                            string displayName = Path.GetFileName(subEntry);
-                            if (displayName.Contains(";"))
-                                displayName = displayName.Substring(0, displayName.IndexOf(";"));
+                            var dirs = subEntries
+                                .Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
+                                .OrderBy(se => Path.GetFileName(se).ToLower());
 
-                            long size = 0;
-                            if (!isDir)
+                            var files = subEntries
+                                .Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
+                                .OrderBy(se => Path.GetFileName(se).ToLower());
+
+                            foreach (var subEntry in dirs.Concat(files))
                             {
-                                using (Stream s = cd.OpenFile(subEntry, FileMode.Open))
+                                bool isDir = cd.GetAttributes(subEntry).HasFlag(FileAttributes.Directory);
+
+                                string displayName = Path.GetFileName(subEntry);
+                                if (displayName.Contains(";"))
+                                    displayName = displayName.Substring(0, displayName.IndexOf(";"));
+
+                                long size = 0;
+                                if (!isDir)
                                 {
-                                    size = s.Length;
+                                    using (Stream s = cd.OpenFile(subEntry, FileMode.Open))
+                                    {
+                                        size = s.Length;
+                                    }
                                 }
-                            }
 
-                            // 🔑 Dimensione arrotondata in eccesso (KB)
-                            string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
+                                string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
+                                string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
+                                                        : GetIconForExtension(Path.GetExtension(subEntry));
 
-                            // 🔑 Determina icona
-                            string iconPath;
-                            if (isDir)
-                            {
-                                iconPath = "pack://application:,,,/Images/folder.png";
-                            }
-                            else
-                            {
-                                string ext = Path.GetExtension(subEntry).ToLower().Split(';')[0];
-                                switch (ext)
+                                detailsListView.Items.Add(new IsoEntry
                                 {
-                                    case ".txt": iconPath = "pack://application:,,,/Images/txt.png"; break;
-                                    case ".doc":
-                                    case ".docx": iconPath = "pack://application:,,,/Images/doc.png"; break;
-                                    case ".xls":
-                                    case ".xlsx": iconPath = "pack://application:,,,/Images/xls.png"; break;
-                                    case ".pdf": iconPath = "pack://application:,,,/Images/pdf.png"; break;
-                                    case ".jpg":
-                                    case ".jpeg":
-                                    case ".bmp":
-                                    case ".tif":
-                                    case ".tiff": iconPath = "pack://application:,,,/Images/jpg.png"; break;
-                                    case ".rar":
-                                    case ".zip": iconPath = "pack://application:,,,/Images/rar.png"; break;
-                                    case ".iso": iconPath = "pack://application:,,,/Images/iso.png"; break;
-                                    default: iconPath = "pack://application:,,,/Images/file.png"; break;
-                                }
+                                    Name = displayName,
+                                    Type = isDir ? "Cartella" : "File",
+                                    Size = sizeText,
+                                    Icon = iconPath,
+                                    EntryPath = subEntry
+                                });
                             }
-
-                            detailsListView.Items.Add(new IsoEntry
-                            {
-                                Name = displayName,
-                                Type = isDir ? "Cartella" : "File",
-                                Size = sizeText,
-                                Icon = iconPath,
-                                EntryPath = subEntry
-                            });
                         }
+                    }
+                }
+                // Caso cartella sorgente (Directory)
+                else if (Directory.Exists(entryPath))
+                {
+                    var dirs = Directory.GetDirectories(entryPath).OrderBy(d => Path.GetFileName(d).ToLower());
+                    var files = Directory.GetFiles(entryPath).OrderBy(f => Path.GetFileName(f).ToLower());
+
+                    foreach (var subEntry in dirs.Concat(files))
+                    {
+                        bool isDir = Directory.Exists(subEntry);
+
+                        string displayName = Path.GetFileName(subEntry);
+                        long size = !isDir ? new FileInfo(subEntry).Length : 0;
+
+                        string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
+                        string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
+                                                : GetIconForExtension(Path.GetExtension(subEntry));
+
+                        detailsListView.Items.Add(new IsoEntry
+                        {
+                            Name = displayName,
+                            Type = isDir ? "Cartella" : "File",
+                            Size = sizeText,
+                            Icon = iconPath,
+                            EntryPath = subEntry
+                        });
                     }
                 }
             }
         }
+
+        private string GetIconForExtension(string ext)
+        {
+            ext = ext.ToLower();
+            switch (ext)
+            {
+                case ".txt": return "pack://application:,,,/Images/txt.png";
+                case ".doc":
+                case ".docx": return "pack://application:,,,/Images/doc.png";
+                case ".xls":
+                case ".xlsx": return "pack://application:,,,/Images/xls.png";
+                case ".pdf": return "pack://application:,,,/Images/pdf.png";
+                case ".jpg":
+                case ".jpeg":
+                case ".bmp":
+                case ".tif":
+                case ".tiff": return "pack://application:,,,/Images/jpg.png";
+                case ".rar":
+                case ".zip": return "pack://application:,,,/Images/rar.png";
+                case ".iso": return "pack://application:,,,/Images/iso.png";
+                default: return "pack://application:,,,/Images/file.png";
+            }
+        }
+
         private void ExpandFirstLevel(TreeViewItem rootItem)
         {
             rootItem.IsExpanded = true;
