@@ -1,6 +1,5 @@
 ﻿using DiscUtils.Iso9660;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -25,7 +24,6 @@ namespace IsoCreatorWpf
             // Default: nome file ISO
             txtIsoName.Text = "OUTPUT";
         }
-
         private void btnSelectSource_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
@@ -40,7 +38,6 @@ namespace IsoCreatorWpf
                 txtSourceFolder.Text = sourceFolder;
             }
         }
-
         private void btnSelectDest_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
@@ -55,7 +52,6 @@ namespace IsoCreatorWpf
                 txtDestFolder.Text = destFolder;
             }
         }
-
         private async void btnCreateIso_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(sourceFolder) || !Directory.Exists(sourceFolder))
@@ -143,7 +139,6 @@ namespace IsoCreatorWpf
                 progressBar.Value = 0; // puoi lasciarla a 100 se vuoi mostrare completamento
             }
         }
-
         private void btnOpenIso_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
@@ -202,7 +197,6 @@ namespace IsoCreatorWpf
                 }
             }
         }
-
         private void AddEntries(CDReader cd, string path, TreeViewItem parentItem)
         {
             foreach (var entry in cd.GetFileSystemEntries(path))
@@ -242,27 +236,31 @@ namespace IsoCreatorWpf
                 }
             }
         }
-
-
-        private void isoTreeView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void detailsListView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (isoTreeView.SelectedItem is TreeViewItem selectedItem && selectedItem.Tag is string entryPath)
+            if (detailsListView.SelectedItem is IsoEntry selectedItem && selectedItem.Type == "File")
             {
-                using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
+                try
                 {
-                    CDReader cd = new CDReader(fs, true);
-
-                    if (!cd.GetAttributes(entryPath).HasFlag(FileAttributes.Directory))
+                    using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                     {
-                        string displayName = Path.GetFileName(entryPath);
-                        if (displayName.Contains(";"))
-                            displayName = displayName.Substring(0, displayName.IndexOf(";"));
+                        CDReader cd = new CDReader(fs, true);
+
+                        string entryPath = selectedItem.EntryPath; // percorso interno ISO
+                        string displayName = selectedItem.Name;
 
                         // Cartella temporanea dedicata
                         string tempDir = Path.Combine(Path.GetTempPath(), "IsoExtract");
                         Directory.CreateDirectory(tempDir);
 
                         string tempPath = Path.Combine(tempDir, displayName);
+
+                        // Evita conflitti di nome
+                        if (File.Exists(tempPath))
+                        {
+                            string uniqueName = $"{Path.GetFileNameWithoutExtension(displayName)}_{Guid.NewGuid()}{Path.GetExtension(displayName)}";
+                            tempPath = Path.Combine(tempDir, uniqueName);
+                        }
 
                         using (Stream isoStream = cd.OpenFile(entryPath, FileMode.Open))
                         using (FileStream outStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
@@ -273,9 +271,21 @@ namespace IsoCreatorWpf
                         Process.Start(new ProcessStartInfo(tempPath) { UseShellExecute = true });
                     }
                 }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Errore durante l'apertura del file:\n{ex.Message}",
+                                    "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
-
+        public class IsoEntry
+        {
+            public string Name { get; set; }
+            public string Type { get; set; }   // "Cartella" o "File"
+            public string Size { get; set; }   // Dimensione in KB
+            public string Icon { get; set; }   // Percorso icona
+            public string EntryPath { get; set; } // Percorso interno ISO
+        }
         private void isoTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (isoTreeView.SelectedItem is TreeViewItem selectedItem && selectedItem.Tag is string entryPath)
@@ -290,9 +300,14 @@ namespace IsoCreatorWpf
                     {
                         var subEntries = cd.GetFileSystemEntries(entryPath);
 
-                        // 🔑 Prima le cartelle
-                        var dirs = subEntries.Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory));
-                        var files = subEntries.Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory));
+                        // 🔑 Prima le cartelle (ordinate alfabeticamente), poi i file (ordinati alfabeticamente)
+                        var dirs = subEntries
+                            .Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
+                            .OrderBy(se => Path.GetFileName(se).ToLower());
+
+                        var files = subEntries
+                            .Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
+                            .OrderBy(se => Path.GetFileName(se).ToLower());
 
                         foreach (var subEntry in dirs.Concat(files))
                         {
@@ -311,25 +326,51 @@ namespace IsoCreatorWpf
                                 }
                             }
 
-                            string sizeText = isDir ? "" : $"{Math.Round(size / 1024.0, 2)} KB";
+                            // 🔑 Dimensione arrotondata in eccesso (KB)
+                            string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
 
-                            string iconPath = isDir
-                                ? "pack://application:,,,/Images/folder.png"
-                                : "pack://application:,,,/Images/file.png";
+                            // 🔑 Determina icona
+                            string iconPath;
+                            if (isDir)
+                            {
+                                iconPath = "pack://application:,,,/Images/folder.png";
+                            }
+                            else
+                            {
+                                string ext = Path.GetExtension(subEntry).ToLower().Split(';')[0];
+                                switch (ext)
+                                {
+                                    case ".txt": iconPath = "pack://application:,,,/Images/txt.png"; break;
+                                    case ".doc":
+                                    case ".docx": iconPath = "pack://application:,,,/Images/doc.png"; break;
+                                    case ".xls":
+                                    case ".xlsx": iconPath = "pack://application:,,,/Images/xls.png"; break;
+                                    case ".pdf": iconPath = "pack://application:,,,/Images/pdf.png"; break;
+                                    case ".jpg":
+                                    case ".jpeg":
+                                    case ".bmp":
+                                    case ".tif":
+                                    case ".tiff": iconPath = "pack://application:,,,/Images/jpg.png"; break;
+                                    case ".rar":
+                                    case ".zip": iconPath = "pack://application:,,,/Images/rar.png"; break;
+                                    case ".iso": iconPath = "pack://application:,,,/Images/iso.png"; break;
+                                    default: iconPath = "pack://application:,,,/Images/file.png"; break;
+                                }
+                            }
 
-                            detailsListView.Items.Add(new
+                            detailsListView.Items.Add(new IsoEntry
                             {
                                 Name = displayName,
                                 Type = isDir ? "Cartella" : "File",
                                 Size = sizeText,
-                                Icon = iconPath
+                                Icon = iconPath,
+                                EntryPath = subEntry
                             });
                         }
                     }
                 }
             }
         }
-
         private void ExpandFirstLevel(TreeViewItem rootItem)
         {
             rootItem.IsExpanded = true;

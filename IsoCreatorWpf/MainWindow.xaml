@@ -55,15 +55,13 @@
             </Grid.ColumnDefinitions>
 
             <!-- TreeView a sinistra -->
-            <TreeView x:Name="isoTreeView" Grid.Column="0" 
-                      MouseDoubleClick="isoTreeView_MouseDoubleClick"
-                      SelectedItemChanged="isoTreeView_SelectedItemChanged"/>
+            <TreeView x:Name="isoTreeView" Grid.Column="0" SelectedItemChanged="isoTreeView_SelectedItemChanged"/>
 
             <!-- Pannello a destra: ListView con dettagli -->
-            <ListView x:Name="detailsListView" Grid.Column="1" Margin="10,0,0,0">
+            <ListView x:Name="detailsListView" Grid.Column="1" Margin="10,0,0,0"
+          MouseDoubleClick="detailsListView_MouseDoubleClick">
                 <ListView.View>
                     <GridView>
-                        <!-- Colonna con icona + nome -->
                         <GridViewColumn Header="Nome" Width="250">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -75,11 +73,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-
-                        <!-- Tipo -->
                         <GridViewColumn Header="Tipo" DisplayMemberBinding="{Binding Type}" Width="100"/>
-
-                        <!-- Dimensione -->
                         <GridViewColumn Header="Dimensione" DisplayMemberBinding="{Binding Size}" Width="100"/>
                     </GridView>
                 </ListView.View>
