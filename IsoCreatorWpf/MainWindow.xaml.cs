@@ -295,33 +295,29 @@ namespace IsoCreatorWpf
 
                         isoTreeView.Items.Clear();
 
-                        // 🔧 StackPanel con icona ISO + nome file
+                        // Root ISO (icona + nome file)
                         StackPanel rootPanel = new StackPanel { Orientation = Orientation.Horizontal };
-
-                        Image isoIcon = new Image
+                        rootPanel.Children.Add(new Image
                         {
                             Width = 16,
                             Height = 16,
                             Margin = new Thickness(0, 0, 5, 0),
                             Source = new System.Windows.Media.Imaging.BitmapImage(
                                 new Uri("pack://application:,,,/Images/iso.png"))
-                        };
+                        });
+                        rootPanel.Children.Add(new TextBlock { Text = Path.GetFileName(currentIsoPath) });
 
-                        TextBlock isoName = new TextBlock { Text = Path.GetFileName(currentIsoPath) };
-
-                        rootPanel.Children.Add(isoIcon);
-                        rootPanel.Children.Add(isoName);
-
-                        // Root con icona + nome
                         TreeViewItem rootItem = new TreeViewItem
                         {
                             Header = rootPanel,
-                            Tag = "" // puoi lasciare vuoto o usare "/" come root
+                            Tag = "" // "" = root path dell’ISO
                         };
 
                         isoTreeView.Items.Add(rootItem);
 
+                        // 🔑 Popola direttamente la root dell’ISO
                         AddEntries(cd, "", rootItem);
+
                         ExpandFirstLevel(rootItem);
                     }
                 }
@@ -332,6 +328,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
         private void AddEntries(CDReader cd, string path, TreeViewItem parentItem)
         {
             foreach (var entry in cd.GetFileSystemEntries(path))
@@ -432,40 +429,53 @@ namespace IsoCreatorWpf
                 {
                     if (!string.IsNullOrEmpty(sourceFolder) && Directory.Exists(sourceFolder))
                     {
-                        // Mostra SOLO la cartella sorgente come voce
+                        // Mostra SOLO la cartella sorgente come voce singola
                         string displayName = Path.GetFileName(sourceFolder);
+                        if (string.IsNullOrEmpty(displayName))
+                            displayName = sourceFolder;
+
                         string iconPath = "pack://application:,,,/Images/folder.png";
 
                         detailsListView.Items.Add(new IsoEntry
                         {
                             Name = displayName,
                             Type = "Cartella",
-                            Size = "", // non serve mostrare dimensione
+                            Size = "",
                             Icon = iconPath,
                             EntryPath = sourceFolder
                         });
+                        return;
                     }
-                    return;
-                }
 
-                // Caso: cartella sorgente o sottocartella
-                if (selectedItem.Tag is string entryPath && Directory.Exists(entryPath))
-                {
-                    ShowFolderContents(entryPath);
-                }
-
-                // Caso ISO aperto da file
-                else if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath) && selectedItem.Tag is string isoEntryPath)
-                {
-                    using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
+                    if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
-                        CDReader cd = new CDReader(fs, true);
-                        ShowIsoContents(cd, isoEntryPath);
+                        using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
+                        {
+                            CDReader cd = new CDReader(fs, true);
+                            ShowIsoContents(cd, ""); // "" = root dell’ISO
+                        }
+                        return;
+                    }
+                }
+
+                // Caso: nodo normale
+                if (selectedItem.Tag is string entryPath)
+                {
+                    if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
+                    {
+                        using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
+                        {
+                            CDReader cd = new CDReader(fs, true);
+                            ShowIsoContents(cd, entryPath);
+                        }
+                    }
+                    else if (Directory.Exists(entryPath))
+                    {
+                        ShowFolderContents(entryPath);
                     }
                 }
             }
         }
-
 
         private void ShowFolderContents(string folderPath)
         {
