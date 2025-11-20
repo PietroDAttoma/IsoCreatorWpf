@@ -520,7 +520,10 @@ namespace IsoCreatorWpf
             foreach (var subEntry in dirs.Concat(files))
             {
                 bool isDir = cd.GetAttributes(subEntry).HasFlag(FileAttributes.Directory);
+
                 string displayName = Path.GetFileName(subEntry);
+
+                // 🔑 Rimuovi suffisso ;1 tipico ISO
                 if (displayName.Contains(";"))
                     displayName = displayName.Substring(0, displayName.IndexOf(";"));
 
@@ -532,8 +535,11 @@ namespace IsoCreatorWpf
                 }
 
                 string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
+
+                // 🔑 Recupera estensione dal nome normalizzato
+                string ext = Path.GetExtension(displayName);
                 string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
-                                        : GetIconForExtension(Path.GetExtension(subEntry));
+                                        : GetIconForExtension(ext);
 
                 detailsListView.Items.Add(new IsoEntry
                 {
