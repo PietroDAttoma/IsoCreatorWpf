@@ -79,26 +79,23 @@ namespace IsoCreatorWpf
                 sourceFolder = dialog.FileName;
                 txtSourceFolder.Text = sourceFolder;
 
-                // 🔑 Usa la root già creata con CreateIsoRoot()
                 if (isoTreeView.Items.Count > 0 && isoTreeView.Items[0] is TreeViewItem rootItem)
                 {
                     rootItem.Items.Clear(); // svuota eventuali contenuti precedenti
-                    AddDirectoryNodes(sourceFolder, rootItem); // aggiungi cartelle e file
-                    rootItem.IsExpanded = true; // espandi la root
+
+                    // 🔑 Nodo per la cartella sorgente (Root)
+                    TreeViewItem sourceNode = CreateTreeViewItem(sourceFolder, true);
+
+                    // 🔑 Aggiungi le sottocartelle dentro la cartella sorgente
+                    AddDirectoryNodes(sourceFolder, sourceNode);
+
+                    // 🔑 Inserisci la cartella sorgente come figlio della root ISO
+                    rootItem.Items.Add(sourceNode);
+
+                    rootItem.IsExpanded = true;
+                    sourceNode.IsExpanded = true;
                 }
             }
-        }
-
-        private void PopulateTreeView(string sourcePath)
-        {
-            isoTreeView.Items.Clear();
-
-            // Nodo root con icona cartella
-            TreeViewItem rootItem = CreateTreeViewItem(sourcePath, true);
-            isoTreeView.Items.Add(rootItem);
-
-            // Aggiungi contenuti
-            AddDirectoryNodes(sourcePath, rootItem);
         }
         private void AddDirectoryNodes(string path, TreeViewItem parentItem)
         {
