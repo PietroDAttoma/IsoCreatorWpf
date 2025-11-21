@@ -5,24 +5,16 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Sorgente -->
-            <RowDefinition Height="Auto"/>
             <!-- Destinazione -->
             <RowDefinition Height="Auto"/>
             <!-- Nome ISO -->
             <RowDefinition Height="Auto"/>
-            <!-- Bottoni -->
+            <!-- Bottoni + Source -->
             <RowDefinition Height="Auto"/>
             <!-- ProgressBar -->
             <RowDefinition Height="*"/>
             <!-- TreeView + pannello -->
         </Grid.RowDefinitions>
-
-        <!-- Cartella sorgente -->
-        <StackPanel Orientation="Horizontal" Margin="0,5">
-            <TextBox x:Name="txtSourceFolder" Width="280" IsReadOnly="True"/>
-            <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Margin="5,0,0,0" Click="btnSelectSource_Click"/>
-        </StackPanel>
 
         <!-- Cartella destinazione -->
         <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="1">
@@ -36,11 +28,21 @@
             <TextBox x:Name="txtIsoName" Width="200"/>
         </StackPanel>
 
-        <!-- Bottoni -->
-        <Button x:Name="btnCreateIso" Content="Crea ISO" Grid.Row="3" Width="95" Height="30"
-                HorizontalAlignment="Left" Click="btnCreateIso_Click" Margin="0,5,0,5"/>
-        <Button x:Name="btnOpenIso" Content="Apri ISO" Grid.Row="3" Width="95" Height="30"
-                HorizontalAlignment="Left" Click="btnOpenIso_Click" Margin="110,5,0,5"/>
+        <!-- Bottoni + Cartella sorgente -->
+        <!-- Bottoni + Cartella sorgente -->
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,5,0,5">
+            <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Height="30"
+            HorizontalAlignment="Left" Click="btnSelectSource_Click"/>
+            <Button x:Name="btnCreateIso" Content="Crea ISO" Width="95" Height="30"
+            HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnCreateIso_Click"/>
+            <Button x:Name="btnOpenIso" Content="Apri ISO" Width="95" Height="30"
+            HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnOpenIso_Click"/>
+
+            <!-- 🔑 Label aggiunta a sinistra della TextBox -->
+            <Label Content="Sorgente:" VerticalAlignment="Center" Margin="20,0,5,0"/>
+
+            <TextBox x:Name="txtSourceFolder" Width="280" IsReadOnly="True" Height="20"/>
+        </StackPanel>
 
         <!-- ProgressBar -->
         <ProgressBar x:Name="progressBar" Grid.Row="4" Height="25" Minimum="0" Maximum="100"/>
@@ -49,17 +51,15 @@
         <Grid Grid.Row="5" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
-                <!-- TreeView -->
                 <ColumnDefinition Width="3*"/>
-                <!-- Pannello a destra -->
             </Grid.ColumnDefinitions>
 
             <!-- TreeView a sinistra -->
             <TreeView x:Name="isoTreeView" Grid.Column="0" SelectedItemChanged="isoTreeView_SelectedItemChanged"/>
 
-            <!-- Pannello a destra: ListView con dettagli -->
+            <!-- ListView a destra -->
             <ListView x:Name="detailsListView" Grid.Column="1" Margin="10,0,0,0"
-          MouseDoubleClick="detailsListView_MouseDoubleClick">
+                      MouseDoubleClick="detailsListView_MouseDoubleClick">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Nome" Width="250">
@@ -67,7 +67,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <Image Width="16" Height="16" Margin="0,0,5,0"
-                                   Source="{Binding Icon}" />
+                                               Source="{Binding Icon}" />
                                         <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -78,7 +78,6 @@
                     </GridView>
                 </ListView.View>
             </ListView>
-
         </Grid>
     </Grid>
 </Window>
