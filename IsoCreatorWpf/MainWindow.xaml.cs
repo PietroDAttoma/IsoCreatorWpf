@@ -28,8 +28,9 @@ namespace IsoCreatorWpf
             // All’avvio, txtIsoName mostra lo stesso testo della root
             txtIsoName.Text = isoNameBlock.Text;
 
-            // 🔑 Collega l’evento per aggiornare la root quando cambia txtIsoName
+            // Collega gli eventi
             txtIsoName.TextChanged += TxtIsoName_TextChanged;
+            txtIsoName.LostFocus += TxtIsoName_LostFocus;
         }
 
         private void CreateIsoRoot()
@@ -70,7 +71,18 @@ namespace IsoCreatorWpf
         {
             if (isoNameBlock != null)
             {
-                isoNameBlock.Text = txtIsoName.Text; // 🔑 sincronizza root con TextBox
+                isoNameBlock.Text = txtIsoName.Text; // sincronizza root con TextBox
+            }
+        }
+
+        private void TxtIsoName_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtIsoName.Text))
+            {
+                // 🔑 Genera un nuovo timestamp se il campo è vuoto
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
+                txtIsoName.Text = timestamp;
+                isoNameBlock.Text = timestamp;
             }
         }
 
