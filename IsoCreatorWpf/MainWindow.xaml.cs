@@ -12,6 +12,7 @@ namespace IsoCreatorWpf
         private string sourceFolder = string.Empty;
         private string destFolder = string.Empty;
         private string? currentIsoPath; // memorizza l'ISO aperto
+        private TextBlock isoNameBlock; // 🔑 riferimento al TextBlock della root
 
         public MainWindow()
         {
@@ -21,19 +22,20 @@ namespace IsoCreatorWpf
             destFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             txtDestFolder.Text = destFolder;
 
-            // Default: nome file ISO
-            txtIsoName.Text = "OUTPUT";
-
             // Crea la root iniziale
             CreateIsoRoot();
+
+            // All’avvio, txtIsoName mostra lo stesso testo della root
+            txtIsoName.Text = isoNameBlock.Text;
+
+            // 🔑 Collega l’evento per aggiornare la root quando cambia txtIsoName
+            txtIsoName.TextChanged += TxtIsoName_TextChanged;
         }
 
         private void CreateIsoRoot()
         {
-            // 🔑 Data e ora attuale nel formato richiesto
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
 
-            // 🔑 StackPanel con icona + testo
             StackPanel rootPanel = new StackPanel { Orientation = Orientation.Horizontal };
 
             Image isoIcon = new Image
@@ -45,25 +47,31 @@ namespace IsoCreatorWpf
                     new Uri("pack://application:,,,/Images/iso.png"))
             };
 
-            TextBlock isoName = new TextBlock
+            isoNameBlock = new TextBlock
             {
-                Text = timestamp,
+                Text = timestamp, // 🔑 inizialmente timestamp
                 VerticalAlignment = VerticalAlignment.Center
             };
 
             rootPanel.Children.Add(isoIcon);
-            rootPanel.Children.Add(isoName);
+            rootPanel.Children.Add(isoNameBlock);
 
-            // 🔑 Root item con timestamp come Tag (utile per future operazioni)
             TreeViewItem rootItem = new TreeViewItem
             {
                 Header = rootPanel,
                 Tag = timestamp
             };
 
-            // Se vuoi mantenere più root (una per ogni sessione), NON fare Clear()
             isoTreeView.Items.Clear();
             isoTreeView.Items.Add(rootItem);
+        }
+
+        private void TxtIsoName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (isoNameBlock != null)
+            {
+                isoNameBlock.Text = txtIsoName.Text; // 🔑 sincronizza root con TextBox
+            }
         }
 
         private void btnSelectSource_Click(object sender, RoutedEventArgs e)

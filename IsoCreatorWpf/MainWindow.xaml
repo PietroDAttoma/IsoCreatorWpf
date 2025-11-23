@@ -25,25 +25,38 @@
         <!-- Nome file ISO -->
         <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="2">
             <Label Content="Nome ISO:" Width="80"/>
-            <TextBox x:Name="txtIsoName" Width="200"/>
+            <TextBox x:Name="txtIsoName" Width="200" Height="20"/>
         </StackPanel>
 
         <!-- Bottoni + Cartella sorgente -->
         <!-- Bottoni + Cartella sorgente -->
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,5,0,5">
+        <!-- Bottoni + Cartella sorgente -->
+        <Grid Grid.Row="3" Margin="0,5,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <!-- btnSelectSource -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- btnCreateIso -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- btnOpenIso -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Label -->
+                <ColumnDefinition Width="*"/>
+                <!-- TextBox -->
+            </Grid.ColumnDefinitions>
+
             <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Height="30"
-            HorizontalAlignment="Left" Click="btnSelectSource_Click"/>
+            Grid.Column="0" Click="btnSelectSource_Click"/>
             <Button x:Name="btnCreateIso" Content="Crea ISO" Width="95" Height="30"
-            HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnCreateIso_Click"/>
+            Grid.Column="1" Margin="10,0,0,0" Click="btnCreateIso_Click"/>
             <Button x:Name="btnOpenIso" Content="Apri ISO" Width="95" Height="30"
-            HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnOpenIso_Click"/>
-
-            <!-- 🔑 Label aggiunta a sinistra della TextBox -->
-            <Label Content="Sorgente:" VerticalAlignment="Center" Margin="20,0,5,0"/>
-
-            <TextBox x:Name="txtSourceFolder" Width="280" IsReadOnly="True" Height="20"/>
-        </StackPanel>
-
+            Grid.Column="2" Margin="10,0,0,0" Click="btnOpenIso_Click"/>
+            <Label Content="Sorgente:" VerticalAlignment="Center" Margin="20,0,5,0"
+           Grid.Column="3"/>
+            <TextBox x:Name="txtSourceFolder" IsReadOnly="True" VerticalAlignment="Center" Height="22"
+             Grid.Column="4"/>
+        </Grid>
+        
         <!-- ProgressBar -->
         <ProgressBar x:Name="progressBar" Grid.Row="4" Height="25" Minimum="0" Maximum="100"/>
 
