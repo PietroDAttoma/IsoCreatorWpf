@@ -18,14 +18,14 @@
 
         <!-- Cartella destinazione -->
         <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="1">
-            <TextBox x:Name="txtDestFolder" Width="280" IsReadOnly="True"/>
+            <TextBox x:Name="txtDestFolder" Width="204" IsReadOnly="True"/>
             <Button x:Name="btnSelectDest" Content="Destinazione" Width="95" Margin="5,0,0,0" Click="btnSelectDest_Click"/>
         </StackPanel>
 
         <!-- Nome file ISO -->
         <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="2">
             <Label Content="Nome ISO:" Width="80"/>
-            <TextBox x:Name="txtIsoName" Width="200" Height="20"/>
+            <TextBox x:Name="txtIsoName" Width="226" Height="20"/>
         </StackPanel>
 
         <!-- Bottoni + Cartella sorgente -->
