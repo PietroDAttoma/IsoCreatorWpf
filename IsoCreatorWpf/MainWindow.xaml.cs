@@ -226,6 +226,7 @@ namespace IsoCreatorWpf
 
             btnCreateIso.IsEnabled = false;
             progressBar.Value = 0;
+            progressBar.IsIndeterminate = false;
 
             try
             {
@@ -266,8 +267,12 @@ namespace IsoCreatorWpf
                             count++;
                             int progress = (int)((double)count / total * 100);
 
-                            // Aggiorna la ProgressBar in modo thread-safe
-                            Dispatcher.BeginInvoke(new Action(() => progressBar.Value = progress));
+                            // 🔑 Aggiorna la ProgressBar con percentuale
+                            Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                progressBar.IsIndeterminate = false;
+                                progressBar.Value = progress;
+                            }));
                         }
 
                         // 🔑 Attiva ProgressBar indeterminata durante la fase finale
@@ -284,7 +289,6 @@ namespace IsoCreatorWpf
                             progressBar.IsIndeterminate = false;
                             progressBar.Value = 100;
                         }));
-
                     }
                 });
 
@@ -305,13 +309,11 @@ namespace IsoCreatorWpf
             finally
             {
                 btnCreateIso.IsEnabled = true;
-                // Mostra completamento visivo
-                progressBar.Value = 100;
-
-                // Se preferisci resettare subito:
-                // progressBar.Value = 0;
+                progressBar.IsIndeterminate = false;
+                progressBar.Value = 0; // oppure lasciala a 100 per mostrare completamento
             }
         }
+
         private void btnOpenIso_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
