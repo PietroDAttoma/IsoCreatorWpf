@@ -17,29 +17,36 @@
         </Grid.RowDefinitions>
 
         <!-- Cartella destinazione + Sorgente -->
+        <!-- Cartella destinazione + Sorgente -->
         <Grid Grid.Row="1" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>   <!-- TextBox Destinazione -->
-                <ColumnDefinition Width="Auto"/> <!-- Bottone Destinazione -->
-                <ColumnDefinition Width="Auto"/> <!-- Label Sorgente -->
-                <ColumnDefinition Width="*"/>   <!-- TextBox Sorgente -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Destinazione -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Bottone Destinazione -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Label Sorgente -->
+                <ColumnDefinition Width="*"/>
+                <!-- TextBox Sorgente -->
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="txtDestFolder" IsReadOnly="True" Height="22"
-                     Grid.Column="0" VerticalAlignment="Center"/>
+            <!-- 🔑 Larghezza dimezzata -->
+            <TextBox x:Name="txtDestFolder" IsReadOnly="True" Width="204" Height="22"
+             Grid.Column="0" VerticalAlignment="Center"/>
             <Button x:Name="btnSelectDest" Content="Destinazione" Width="95" Height="30"
-                    Grid.Column="1" Margin="5,0,0,0" Click="btnSelectDest_Click"/>
+            Grid.Column="1" Margin="5,0,0,0" Click="btnSelectDest_Click"/>
 
             <Label Content="Sorgente:" Width="80" VerticalAlignment="Center" Margin="20,0,5,0"
-                   Grid.Column="2"/>
+           Grid.Column="2"/>
             <TextBox x:Name="txtSourceFolder" IsReadOnly="True" Height="22"
-                     Grid.Column="3" VerticalAlignment="Center"/>
+             Grid.Column="3" VerticalAlignment="Center"/>
         </Grid>
+
 
         <!-- Nome file ISO -->
         <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="2">
             <Label Content="Nome ISO:" Width="80"/>
-            <TextBox x:Name="txtIsoName" Width="226" Height="20"/>
+            <TextBox x:Name="txtIsoName" Width="225" Height="20"/>
         </StackPanel>
 
         <!-- Bottoni -->
