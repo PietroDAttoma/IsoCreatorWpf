@@ -267,10 +267,24 @@ namespace IsoCreatorWpf
                             int progress = (int)((double)count / total * 100);
 
                             // Aggiorna la ProgressBar in modo thread-safe
-                            Dispatcher.Invoke(() => progressBar.Value = progress);
+                            Dispatcher.BeginInvoke(new Action(() => progressBar.Value = progress));
                         }
 
+                        // 🔑 Attiva ProgressBar indeterminata durante la fase finale
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            progressBar.IsIndeterminate = true;
+                        }));
+
                         builder.Build(fs);
+
+                        // 🔑 Disattiva indeterminata e porta a 100%
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            progressBar.IsIndeterminate = false;
+                            progressBar.Value = 100;
+                        }));
+
                     }
                 });
 
@@ -291,7 +305,11 @@ namespace IsoCreatorWpf
             finally
             {
                 btnCreateIso.IsEnabled = true;
-                progressBar.Value = 0; // puoi lasciarla a 100 se vuoi mostrare completamento
+                // Mostra completamento visivo
+                progressBar.Value = 100;
+
+                // Se preferisci resettare subito:
+                // progressBar.Value = 0;
             }
         }
         private void btnOpenIso_Click(object sender, RoutedEventArgs e)
