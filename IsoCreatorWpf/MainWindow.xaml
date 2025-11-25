@@ -16,7 +16,6 @@
         </Grid.RowDefinitions>
 
         <!-- Cartella destinazione + Sorgente -->
-        <!-- Cartella destinazione + Sorgente -->
         <Grid Grid.Row="1" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -29,37 +28,50 @@
                 <!-- TextBox Sorgente -->
             </Grid.ColumnDefinitions>
 
-            <!-- 🔑 Larghezza dimezzata per allineamento con btnCreateIso -->
             <TextBox x:Name="txtDestFolder" IsReadOnly="True" Width="204" Height="22"
-             Grid.Column="0" VerticalAlignment="Center"/>
+                     Grid.Column="0" VerticalAlignment="Center"/>
             <Button x:Name="btnSelectDest" Content="Destinazione" Width="95" Height="30"
-            Grid.Column="1" Margin="5,0,0,0" Click="btnSelectDest_Click"/>
+                    Grid.Column="1" Margin="5,0,0,0" Click="btnSelectDest_Click"/>
 
             <Label Content="Sorgente:" Width="80" VerticalAlignment="Center" Margin="20,0,5,0"
-           Grid.Column="2"/>
+                   Grid.Column="2"/>
             <TextBox x:Name="txtSourceFolder" IsReadOnly="True" Height="22"
-             Grid.Column="3" VerticalAlignment="Center"/>
+                     Grid.Column="3" VerticalAlignment="Center"/>
         </Grid>
 
-
-        <!-- Nome file ISO + ProgressBar -->
+        <!-- Nome file ISO + Total Size + ProgressBar -->
+        <!-- Nome file ISO + Total Size + ProgressBar -->
+        <!-- Nome file ISO + Total Size + ProgressBar -->
         <Grid Grid.Row="2" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <!-- Label Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
                 <!-- TextBox Nome ISO -->
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <!-- Label Total Size -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Total Size -->
+                <ColumnDefinition Width="Auto"/>
                 <!-- ProgressBar -->
             </Grid.ColumnDefinitions>
 
             <Label Content="Nome ISO:" Width="80" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBox x:Name="txtIsoName" Width="226" Height="20" Grid.Column="1" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtIsoName" Width="224" Height="22" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
-            <!-- 🔑 ProgressBar accanto a txtIsoName -->
-            <ProgressBar x:Name="progressBar" Grid.Column="2" Height="20"
-                         Minimum="0" Maximum="100" VerticalAlignment="Center" Margin="20,0,0,0"/>
+            <!-- Label Total Size -->
+            <Label Content="Total Size:" Width="80" Grid.Column="2" VerticalAlignment="Center" Margin="10,0,5,0"/>
+
+            <!-- TextBox Total Size -->
+            <TextBox x:Name="txtTotalSize" Text="0Kb" Width="80" Height="22"
+             IsReadOnly="True" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,5,0"/>
+
+            <!-- ProgressBar subito accanto alla TextBox -->
+            <ProgressBar x:Name="progressBar" Grid.Column="4" Width="270" Height="15"
+                 Minimum="0" Maximum="100" VerticalAlignment="Center"/>
         </Grid>
+
+
 
         <!-- Bottoni -->
         <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,5,0,5">
