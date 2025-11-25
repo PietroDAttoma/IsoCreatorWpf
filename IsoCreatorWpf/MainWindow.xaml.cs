@@ -99,6 +99,10 @@ namespace IsoCreatorWpf
                 sourceFolder = dialog.FileName;
                 txtSourceFolder.Text = sourceFolder;
 
+                // 🔑 Calcola la dimensione totale della cartella sorgente
+                long sizeKB = GetDirectorySize(new DirectoryInfo(sourceFolder)) / 1024;
+                txtTotalSize.Text = $"{sizeKB} Kb";
+
                 if (isoTreeView.Items.Count > 0 && isoTreeView.Items[0] is TreeViewItem rootItem)
                 {
                     rootItem.Items.Clear(); // svuota eventuali contenuti precedenti
@@ -117,6 +121,27 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
+        // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella
+        private long GetDirectorySize(DirectoryInfo dir)
+        {
+            long size = 0;
+
+            // Somma la dimensione di tutti i file nella cartella
+            foreach (FileInfo fi in dir.GetFiles())
+            {
+                size += fi.Length;
+            }
+
+            // Somma la dimensione di tutte le sottocartelle ricorsivamente
+            foreach (DirectoryInfo subDir in dir.GetDirectories())
+            {
+                size += GetDirectorySize(subDir);
+            }
+
+            return size;
+        }
+
         private void AddDirectoryNodes(string path, TreeViewItem parentItem)
         {
             try
@@ -329,6 +354,13 @@ namespace IsoCreatorWpf
 
                 try
                 {
+                    // 🔑 Calcola la dimensione totale del file ISO
+                    FileInfo fi = new FileInfo(currentIsoPath);
+                    long sizeKB = fi.Length / 1024;
+
+                    // Aggiorna la TextBox txtTotalSize
+                    txtTotalSize.Text = $"{sizeKB} Kb";
+
                     using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                     {
                         CDReader cd = new CDReader(fs, true);
@@ -458,59 +490,80 @@ namespace IsoCreatorWpf
             public string Icon { get; set; }   // Percorso icona
             public string EntryPath { get; set; } // Percorso interno ISO
         }
+        // Evento scatenato quando l'utente seleziona un nodo nel TreeView (isoTreeView)
         private void isoTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            // Verifica che l'elemento selezionato sia effettivamente un TreeViewItem
             if (isoTreeView.SelectedItem is TreeViewItem selectedItem)
             {
+                // Pulisce la lista dei dettagli per mostrare solo i dati relativi al nuovo nodo selezionato
                 detailsListView.Items.Clear();
 
-                // Caso: root ISO cliccata
+                // 🔎 Caso: l'utente ha cliccato sulla root del TreeView (primo elemento)
                 if (selectedItem == isoTreeView.Items[0])
                 {
+                    // Se è stata impostata una cartella sorgente locale
                     if (!string.IsNullOrEmpty(sourceFolder) && Directory.Exists(sourceFolder))
                     {
-                        // Mostra SOLO la cartella sorgente come voce singola
+                        // Recupera il nome della cartella sorgente (se vuoto usa il percorso completo)
                         string displayName = Path.GetFileName(sourceFolder);
                         if (string.IsNullOrEmpty(displayName))
                             displayName = sourceFolder;
 
+                        // Icona da usare per la cartella
                         string iconPath = "pack://application:,,,/Images/folder.png";
 
+                        // Aggiunge una voce IsoEntry che rappresenta la cartella sorgente
                         detailsListView.Items.Add(new IsoEntry
                         {
-                            Name = displayName,
-                            Type = "Cartella",
-                            Size = "",
-                            Icon = iconPath,
-                            EntryPath = sourceFolder
+                            Name = displayName,     // Nome cartella
+                            Type = "Cartella",      // Tipo = Cartella
+                            Size = "",              // Nessuna dimensione mostrata
+                            Icon = iconPath,        // Icona cartella
+                            EntryPath = sourceFolder // Percorso della cartella sorgente
                         });
+
+                        // Esce: mostra solo la cartella sorgente
                         return;
                     }
 
+                    // Se invece è stato aperto un file ISO
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
+                        // Apre lo stream del file ISO
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                         {
+                            // Crea un lettore ISO (CDReader) per leggere la struttura del file
                             CDReader cd = new CDReader(fs, true);
-                            ShowIsoContents(cd, ""); // "" = root dell’ISO
+
+                            // Mostra i contenuti della root dell’ISO
+                            // "" indica il percorso root interno all’ISO
+                            ShowIsoContents(cd, "");
                         }
+
+                        // Esce: ha mostrato i contenuti della root ISO
                         return;
                     }
                 }
 
-                // Caso: nodo normale
+                // 🔎 Caso: l'utente ha cliccato su un nodo normale (non root)
                 if (selectedItem.Tag is string entryPath)
                 {
+                    // Se è aperto un file ISO
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                         {
                             CDReader cd = new CDReader(fs, true);
+
+                            // Mostra i contenuti della cartella interna all’ISO
                             ShowIsoContents(cd, entryPath);
                         }
                     }
+                    // Se invece è una cartella locale
                     else if (Directory.Exists(entryPath))
                     {
+                        // Mostra i contenuti della cartella locale
                         ShowFolderContents(entryPath);
                     }
                 }
