@@ -610,9 +610,20 @@ namespace IsoCreatorWpf
             {
                 bool isDir = Directory.Exists(subEntry);
                 string displayName = Path.GetFileName(subEntry);
-                long size = !isDir ? new FileInfo(subEntry).Length : 0;
 
-                string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
+                long size = 0;
+                if (isDir)
+                {
+                    // 🔑 Calcola la dimensione totale della cartella locale
+                    size = GetDirectorySize(new DirectoryInfo(subEntry));
+                }
+                else
+                {
+                    // 🔑 Dimensione del file
+                    size = new FileInfo(subEntry).Length;
+                }
+
+                string sizeText = $"{Math.Ceiling(size / 1024.0)} KB";
                 string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
                                         : GetIconForExtension(Path.GetExtension(subEntry));
 
@@ -650,13 +661,18 @@ namespace IsoCreatorWpf
                     displayName = displayName.Substring(0, displayName.IndexOf(";"));
 
                 long size = 0;
-                if (!isDir)
+                if (isDir)
+                {
+                    // 🔑 Calcola la dimensione totale della cartella interna all’ISO
+                    size = GetIsoDirectorySize(cd, subEntry);
+                }
+                else
                 {
                     using (Stream s = cd.OpenFile(subEntry, FileMode.Open))
                         size = s.Length;
                 }
 
-                string sizeText = isDir ? "" : $"{Math.Ceiling(size / 1024.0)} KB";
+                string sizeText = $"{Math.Ceiling(size / 1024.0)} KB";
 
                 // 🔑 Recupera estensione dal nome normalizzato
                 string ext = Path.GetExtension(displayName);
@@ -673,6 +689,7 @@ namespace IsoCreatorWpf
                 });
             }
         }
+
 
         private string GetIconForExtension(string ext)
         {
