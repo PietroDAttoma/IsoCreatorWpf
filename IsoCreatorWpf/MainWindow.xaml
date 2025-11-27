@@ -74,14 +74,21 @@
 
 
         <!-- Bottoni -->
+        <!-- Bottoni -->
         <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,5,0,5">
             <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Height="30"
-                    HorizontalAlignment="Left" Click="btnSelectSource_Click"/>
+            HorizontalAlignment="Left" Click="btnSelectSource_Click"/>
             <Button x:Name="btnCreateIso" Content="Crea ISO" Width="95" Height="30"
-                    HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnCreateIso_Click"/>
+            HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnCreateIso_Click"/>
             <Button x:Name="btnOpenIso" Content="Apri ISO" Width="95" Height="30"
-                    HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnOpenIso_Click"/>
+            HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnOpenIso_Click"/>
+
+            <!-- 🔑 Nuova Label e TextBox per Folder Size -->
+            <Label Content="Folder Size:" Width="80" VerticalAlignment="Center" Margin="20,0,5,0"/>
+            <TextBox x:Name="txtFolderSize" Text="0Kb" Width="80" Height="22"
+             IsReadOnly="True" VerticalAlignment="Center"/>
         </StackPanel>
+
 
         <!-- Area divisa in due colonne -->
         <Grid Grid.Row="4" Margin="0,10,0,0">

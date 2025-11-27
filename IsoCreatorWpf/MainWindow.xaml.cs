@@ -122,23 +122,53 @@ namespace IsoCreatorWpf
             }
         }
 
-        // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella
+        // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella locale
         private long GetDirectorySize(DirectoryInfo dir)
         {
             long size = 0;
 
-            // Somma la dimensione di tutti i file nella cartella
+            // Scorre tutti i file presenti direttamente nella cartella
             foreach (FileInfo fi in dir.GetFiles())
             {
+                // Somma la dimensione (in byte) di ciascun file
                 size += fi.Length;
             }
 
-            // Somma la dimensione di tutte le sottocartelle ricorsivamente
+            // Scorre tutte le sottocartelle presenti nella cartella
             foreach (DirectoryInfo subDir in dir.GetDirectories())
             {
+                // Richiama ricorsivamente la funzione per calcolare la dimensione delle sottocartelle
                 size += GetDirectorySize(subDir);
             }
 
+            // Restituisce la dimensione totale (in byte) della cartella e delle sue sottocartelle
+            return size;
+        }
+
+        // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella interna ad un file ISO
+        private long GetIsoDirectorySize(CDReader cd, string path)
+        {
+            long size = 0;
+
+            // Scorre tutti i file presenti nella cartella ISO specificata
+            foreach (var file in cd.GetFiles(path))
+            {
+                // Apre lo stream del file per leggere la sua lunghezza
+                using (Stream s = cd.OpenFile(file, FileMode.Open))
+                {
+                    // Somma la dimensione (in byte) del file
+                    size += s.Length;
+                }
+            }
+
+            // Scorre tutte le sottocartelle presenti nella cartella ISO
+            foreach (var dir in cd.GetDirectories(path))
+            {
+                // Richiama ricorsivamente la funzione per calcolare la dimensione delle sottocartelle ISO
+                size += GetIsoDirectorySize(cd, dir);
+            }
+
+            // Restituisce la dimensione totale (in byte) della cartella ISO e delle sue sottocartelle
             return size;
         }
 
@@ -165,7 +195,6 @@ namespace IsoCreatorWpf
                                 "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private TreeViewItem CreateTreeViewItem(string fullPath, bool isDir)
         {
@@ -493,63 +522,56 @@ namespace IsoCreatorWpf
         // Evento scatenato quando l'utente seleziona un nodo nel TreeView (isoTreeView)
         private void isoTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            // Verifica che l'elemento selezionato sia effettivamente un TreeViewItem
             if (isoTreeView.SelectedItem is TreeViewItem selectedItem)
             {
-                // Pulisce la lista dei dettagli per mostrare solo i dati relativi al nuovo nodo selezionato
                 detailsListView.Items.Clear();
 
-                // 🔎 Caso: l'utente ha cliccato sulla root del TreeView (primo elemento)
+                // 🔎 Caso: root del TreeView
                 if (selectedItem == isoTreeView.Items[0])
                 {
-                    // Se è stata impostata una cartella sorgente locale
                     if (!string.IsNullOrEmpty(sourceFolder) && Directory.Exists(sourceFolder))
                     {
-                        // Recupera il nome della cartella sorgente (se vuoto usa il percorso completo)
                         string displayName = Path.GetFileName(sourceFolder);
                         if (string.IsNullOrEmpty(displayName))
                             displayName = sourceFolder;
 
-                        // Icona da usare per la cartella
                         string iconPath = "pack://application:,,,/Images/folder.png";
 
-                        // Aggiunge una voce IsoEntry che rappresenta la cartella sorgente
                         detailsListView.Items.Add(new IsoEntry
                         {
-                            Name = displayName,     // Nome cartella
-                            Type = "Cartella",      // Tipo = Cartella
-                            Size = "",              // Nessuna dimensione mostrata
-                            Icon = iconPath,        // Icona cartella
-                            EntryPath = sourceFolder // Percorso della cartella sorgente
+                            Name = displayName,
+                            Type = "Cartella",
+                            Size = "",
+                            Icon = iconPath,
+                            EntryPath = sourceFolder
                         });
 
-                        // Esce: mostra solo la cartella sorgente
+                        // 🔑 Dimensione cartella sorgente
+                        long sizeKB = GetDirectorySize(new DirectoryInfo(sourceFolder)) / 1024;
+                        txtFolderSize.Text = $"{sizeKB} Kb";
                         return;
                     }
 
-                    // Se invece è stato aperto un file ISO
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
-                        // Apre lo stream del file ISO
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                         {
-                            // Crea un lettore ISO (CDReader) per leggere la struttura del file
                             CDReader cd = new CDReader(fs, true);
-
-                            // Mostra i contenuti della root dell’ISO
-                            // "" indica il percorso root interno all’ISO
                             ShowIsoContents(cd, "");
                         }
 
-                        // Esce: ha mostrato i contenuti della root ISO
+                        // 🔑 Dimensione totale ISO
+                        FileInfo fi = new FileInfo(currentIsoPath);
+                        long sizeKB = fi.Length / 1024;
+                        txtFolderSize.Text = $"{sizeKB} Kb";
                         return;
                     }
                 }
 
-                // 🔎 Caso: l'utente ha cliccato su un nodo normale (non root)
+                // 🔎 Caso: nodo normale
                 if (selectedItem.Tag is string entryPath)
                 {
-                    // Se è aperto un file ISO
+                    // Caso ISO
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
@@ -558,13 +580,20 @@ namespace IsoCreatorWpf
 
                             // Mostra i contenuti della cartella interna all’ISO
                             ShowIsoContents(cd, entryPath);
+
+                            // 🔑 Calcola dimensione della cartella interna all’ISO
+                            long sizeKB = GetIsoDirectorySize(cd, entryPath) / 1024;
+                            txtFolderSize.Text = $"{sizeKB} Kb";
                         }
                     }
-                    // Se invece è una cartella locale
+                    // Caso cartella locale
                     else if (Directory.Exists(entryPath))
                     {
-                        // Mostra i contenuti della cartella locale
                         ShowFolderContents(entryPath);
+
+                        // 🔑 Dimensione cartella locale
+                        long sizeKB = GetDirectorySize(new DirectoryInfo(entryPath)) / 1024;
+                        txtFolderSize.Text = $"{sizeKB} Kb";
                     }
                 }
             }
