@@ -565,7 +565,8 @@ namespace IsoCreatorWpf
                         {
                             Name = displayName,
                             Type = "Cartella",
-                            Size = "",
+                            // 🔑 Calcola e mostra la dimensione della cartella sorgente
+                            Size = FormatSize(GetDirectorySize(new DirectoryInfo(sourceFolder))),
                             Icon = iconPath,
                             EntryPath = sourceFolder
                         });
