@@ -48,7 +48,7 @@
             <TextBox x:Name="txtTotalSize" Text="0Kb" Width="80" Height="22"
                      IsReadOnly="True" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,5,0"/>
 
-            <!-- ProgressBar principale -->
+            <!-- ProgressBarSize -->
             <ProgressBar x:Name="progressBarSize" Grid.Column="4" Height="20"
                          Minimum="0" Maximum="100" VerticalAlignment="Center"
                          HorizontalAlignment="Stretch" Margin="10,0,0,0"/>
@@ -78,7 +78,7 @@
             <TextBox x:Name="txtFolderSize" Text="0Kb" Width="80" Height="22"
                      IsReadOnly="True" VerticalAlignment="Center" Grid.Column="4" Margin="0,0,5,0"/>
 
-            <!-- ProgressBarFolder ancorata a destra -->
+            <!-- ProgressBar ancorata a destra -->
             <ProgressBar x:Name="progressBar" Grid.Column="5" Height="20"
                          Minimum="0" Maximum="100" VerticalAlignment="Center"
                          HorizontalAlignment="Stretch" Margin="10,0,0,0"/>
