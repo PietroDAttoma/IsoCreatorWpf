@@ -86,6 +86,29 @@ namespace IsoCreatorWpf
             }
         }
 
+        // 🔎 Funzione di supporto per formattare la dimensione in KB, MB o GB
+        private string FormatSize(long sizeInBytes)
+        {
+            double sizeKB = sizeInBytes / 1024.0;
+
+            if (sizeKB < 1024)
+            {
+                // Mostra in KB
+                return $"{Math.Ceiling(sizeKB)} KB";
+            }
+
+            double sizeMB = sizeKB / 1024.0;
+            if (sizeMB < 1024)
+            {
+                // Mostra in MB
+                return $"{sizeMB:F2} MB";
+            }
+
+            double sizeGB = sizeMB / 1024.0;
+            // Mostra in GB
+            return $"{sizeGB:F2} GB";
+        }
+
         private void btnSelectSource_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
@@ -100,8 +123,8 @@ namespace IsoCreatorWpf
                 txtSourceFolder.Text = sourceFolder;
 
                 // 🔑 Calcola la dimensione totale della cartella sorgente
-                long sizeKB = GetDirectorySize(new DirectoryInfo(sourceFolder)) / 1024;
-                txtTotalSize.Text = $"{sizeKB} Kb";
+                long sizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
+                txtTotalSize.Text = FormatSize(sizeBytes);   // Usa la funzione di formattazione
 
                 if (isoTreeView.Items.Count > 0 && isoTreeView.Items[0] is TreeViewItem rootItem)
                 {
@@ -121,6 +144,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
 
         // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella locale
         private long GetDirectorySize(DirectoryInfo dir)
@@ -385,10 +409,10 @@ namespace IsoCreatorWpf
                 {
                     // 🔑 Calcola la dimensione totale del file ISO
                     FileInfo fi = new FileInfo(currentIsoPath);
-                    long sizeKB = fi.Length / 1024;
+                    long sizeBytes = fi.Length;
 
-                    // Aggiorna la TextBox txtTotalSize
-                    txtTotalSize.Text = $"{sizeKB} Kb";
+                    // Aggiorna la TextBox txtTotalSize con formattazione KB/MB/GB
+                    txtTotalSize.Text = FormatSize(sizeBytes);
 
                     using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                     {
@@ -547,8 +571,8 @@ namespace IsoCreatorWpf
                         });
 
                         // 🔑 Dimensione cartella sorgente
-                        long sizeKB = GetDirectorySize(new DirectoryInfo(sourceFolder)) / 1024;
-                        txtFolderSize.Text = $"{sizeKB} Kb";
+                        long sizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
+                        txtFolderSize.Text = FormatSize(sizeBytes);
                         return;
                     }
 
@@ -562,8 +586,7 @@ namespace IsoCreatorWpf
 
                         // 🔑 Dimensione totale ISO
                         FileInfo fi = new FileInfo(currentIsoPath);
-                        long sizeKB = fi.Length / 1024;
-                        txtFolderSize.Text = $"{sizeKB} Kb";
+                        txtFolderSize.Text = FormatSize(fi.Length);
                         return;
                     }
                 }
@@ -582,8 +605,8 @@ namespace IsoCreatorWpf
                             ShowIsoContents(cd, entryPath);
 
                             // 🔑 Calcola dimensione della cartella interna all’ISO
-                            long sizeKB = GetIsoDirectorySize(cd, entryPath) / 1024;
-                            txtFolderSize.Text = $"{sizeKB} Kb";
+                            long sizeBytes = GetIsoDirectorySize(cd, entryPath);
+                            txtFolderSize.Text = FormatSize(sizeBytes);
                         }
                     }
                     // Caso cartella locale
@@ -592,8 +615,8 @@ namespace IsoCreatorWpf
                         ShowFolderContents(entryPath);
 
                         // 🔑 Dimensione cartella locale
-                        long sizeKB = GetDirectorySize(new DirectoryInfo(entryPath)) / 1024;
-                        txtFolderSize.Text = $"{sizeKB} Kb";
+                        long sizeBytes = GetDirectorySize(new DirectoryInfo(entryPath));
+                        txtFolderSize.Text = FormatSize(sizeBytes);
                     }
                 }
             }
@@ -689,8 +712,6 @@ namespace IsoCreatorWpf
                 });
             }
         }
-
-
         private string GetIconForExtension(string ext)
         {
             ext = ext.ToLower();
