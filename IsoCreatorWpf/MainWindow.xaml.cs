@@ -646,7 +646,9 @@ namespace IsoCreatorWpf
                     size = new FileInfo(subEntry).Length;
                 }
 
-                string sizeText = $"{Math.Ceiling(size / 1024.0)} KB";
+                // 🔑 Usa la funzione di formattazione KB/MB/GB
+                string sizeText = FormatSize(size);
+
                 string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
                                         : GetIconForExtension(Path.GetExtension(subEntry));
 
@@ -660,7 +662,6 @@ namespace IsoCreatorWpf
                 });
             }
         }
-
         private void ShowIsoContents(CDReader cd, string path)
         {
             detailsListView.Items.Clear();
@@ -695,9 +696,9 @@ namespace IsoCreatorWpf
                         size = s.Length;
                 }
 
-                string sizeText = $"{Math.Ceiling(size / 1024.0)} KB";
+                // 🔑 Usa la funzione di formattazione KB/MB/GB
+                string sizeText = FormatSize(size);
 
-                // 🔑 Recupera estensione dal nome normalizzato
                 string ext = Path.GetExtension(displayName);
                 string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
                                         : GetIconForExtension(ext);
@@ -712,6 +713,7 @@ namespace IsoCreatorWpf
                 });
             }
         }
+
         private string GetIconForExtension(string ext)
         {
             ext = ext.ToLower();
