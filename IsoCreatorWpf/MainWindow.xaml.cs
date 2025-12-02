@@ -124,7 +124,27 @@ namespace IsoCreatorWpf
 
                 // 🔑 Calcola la dimensione totale della cartella sorgente
                 long sizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
-                txtTotalSize.Text = FormatSize(sizeBytes);   // Usa la funzione di formattazione
+
+                // Aggiorna la TextBox txtTotalSize con formattazione KB/MB/GB
+                txtTotalSize.Text = FormatSize(sizeBytes);
+
+                // 🔑 Calcola la percentuale rispetto a un DVD-5 (4,7 GB decimali)
+                const long dvd5CapacityBytes = 4700000000; // 4,7 GB
+                double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+
+                // Aggiorna la TextBox txtExtraInfo con la percentuale
+                txtExtraInfo.Text = $"{percent:F2}% di DVD 4,7GB";
+
+                // 🔑 Aggiorna la ProgressBarSize con la percentuale
+                progressBarSize.Value = Math.Min(percent, 100); // max 100 per non uscire dai limiti
+
+                // ⚠️ Avviso se supera la capacità del DVD-5
+                if (percent > 100.0)
+                {
+                    MessageBox.Show("Attenzione: la cartella selezionata supera la capacità di un DVD-5 (4,7 GB). " +
+                                    "È necessario un supporto dual-layer.",
+                                    "Capacità superata", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
 
                 if (isoTreeView.Items.Count > 0 && isoTreeView.Items[0] is TreeViewItem rootItem)
                 {
@@ -144,7 +164,6 @@ namespace IsoCreatorWpf
                 }
             }
         }
-
 
         // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella locale
         private long GetDirectorySize(DirectoryInfo dir)
@@ -413,6 +432,24 @@ namespace IsoCreatorWpf
 
                     // Aggiorna la TextBox txtTotalSize con formattazione KB/MB/GB
                     txtTotalSize.Text = FormatSize(sizeBytes);
+
+                    // 🔑 Calcola la percentuale rispetto a un DVD-5 (4,7 GB decimali)
+                    const long dvd5CapacityBytes = 4700000000; // 4,7 GB
+                    double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+
+                    // Aggiorna la TextBox txtExtraInfo con la percentuale
+                    txtExtraInfo.Text = $"{percent:F2}% di DVD 4,7GB";
+
+                    // 🔑 Aggiorna la ProgressBarSize con la percentuale
+                    progressBarSize.Value = Math.Min(percent, 100); // max 100 per non uscire dai limiti
+
+                    // ⚠️ Avviso se supera la capacità del DVD-5
+                    if (percent > 100.0)
+                    {
+                        MessageBox.Show("Attenzione: l'ISO supera la capacità di un DVD-5 (4,7 GB). " +
+                                        "È necessario un supporto dual-layer.",
+                                        "Capacità superata", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
 
                     using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                     {

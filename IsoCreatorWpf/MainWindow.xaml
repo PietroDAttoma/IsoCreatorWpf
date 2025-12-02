@@ -31,14 +31,21 @@
                      Grid.Column="3" VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- Nome file ISO + Total Size + ProgressBar -->
+        <!-- Nome file ISO + Total Size + TextBox + ProgressBar -->
         <Grid Grid.Row="2" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
+                <!-- Label Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
+                <!-- Label Total Size -->
                 <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Total Size -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Nuovo TextBox -->
                 <ColumnDefinition Width="*"/>
+                <!-- ProgressBar -->
             </Grid.ColumnDefinitions>
 
             <Label Content="Nome ISO:" Width="80" Grid.Column="0" VerticalAlignment="Center"/>
@@ -48,8 +55,12 @@
             <TextBox x:Name="txtTotalSize" Text="0Kb" Width="80" Height="22"
                      IsReadOnly="True" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,5,0"/>
 
-            <!-- ProgressBarSize -->
-            <ProgressBar x:Name="progressBarSize" Grid.Column="4" Height="20"
+            <!-- Nuovo TextBox tra TotalSize e ProgressBar -->
+            <TextBox x:Name="txtExtraInfo" Text="Info" Width="130" Height="22"
+                     IsReadOnly="True" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,5,0"/>
+
+            <!-- ProgressBarSize spostata a destra -->
+            <ProgressBar x:Name="progressBarSize" Grid.Column="5" Height="20"
                          Minimum="0" Maximum="100" VerticalAlignment="Center"
                          HorizontalAlignment="Stretch" Margin="10,0,0,0"/>
         </Grid>
@@ -63,7 +74,6 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <!-- ProgressBarFolder -->
             </Grid.ColumnDefinitions>
 
             <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Height="30"
@@ -78,7 +88,7 @@
             <TextBox x:Name="txtFolderSize" Text="0Kb" Width="80" Height="22"
                      IsReadOnly="True" VerticalAlignment="Center" Grid.Column="4" Margin="0,0,5,0"/>
 
-            <!-- ProgressBar ancorata a destra -->
+            <!-- ProgressBarFolder ancorata a destra -->
             <ProgressBar x:Name="progressBar" Grid.Column="5" Height="20"
                          Minimum="0" Maximum="100" VerticalAlignment="Center"
                          HorizontalAlignment="Stretch" Margin="10,0,0,0"/>
