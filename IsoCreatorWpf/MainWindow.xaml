@@ -62,7 +62,7 @@
             <!-- ProgressBarSize spostata a destra -->
             <ProgressBar x:Name="progressBarSize" Grid.Column="5" Height="20"
                          Minimum="0" Maximum="100" VerticalAlignment="Center"
-                         HorizontalAlignment="Stretch" Margin="10,0,0,0"/>
+                         HorizontalAlignment="Stretch" Margin="5,0,0,0"/>
         </Grid>
 
         <!-- Bottoni + Folder Size + ProgressBarFolder -->
@@ -91,7 +91,7 @@
             <!-- ProgressBarFolder ancorata a destra -->
             <ProgressBar x:Name="progressBar" Grid.Column="5" Height="20"
                          Minimum="0" Maximum="100" VerticalAlignment="Center"
-                         HorizontalAlignment="Stretch" Margin="10,0,0,0"/>
+                         HorizontalAlignment="Stretch" Margin="0,0,0,0"/>
         </Grid>
 
         <!-- Area divisa in due colonne -->
