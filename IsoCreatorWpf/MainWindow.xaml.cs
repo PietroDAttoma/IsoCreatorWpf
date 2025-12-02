@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace IsoCreatorWpf
 {
@@ -445,6 +446,20 @@ namespace IsoCreatorWpf
                     progressBarSize.Value = Math.Min(percent, 100);
                     progressBarSizeText.Text = $"{percent:F2}% di DVD 4,7GB";
 
+                    // 🔑 Colori dinamici della barra
+                    if (percent <= 80.0)
+                    {
+                        progressBarSize.Foreground = new SolidColorBrush(Colors.Green);
+                    }
+                    else if (percent <= 100.0)
+                    {
+                        progressBarSize.Foreground = new SolidColorBrush(Colors.Orange);
+                    }
+                    else
+                    {
+                        progressBarSize.Foreground = new SolidColorBrush(Colors.Red);
+                    }
+
                     // ⚠️ Avviso se supera la capacità
                     if (percent > 100.0)
                     {
@@ -490,6 +505,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
 
         private void AddEntries(CDReader cd, string path, TreeViewItem parentItem)
         {
