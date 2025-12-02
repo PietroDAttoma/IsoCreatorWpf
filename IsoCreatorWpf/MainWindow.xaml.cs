@@ -132,11 +132,9 @@ namespace IsoCreatorWpf
                 const long dvd5CapacityBytes = 4700000000; // 4,7 GB
                 double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
 
-                // Aggiorna la TextBox txtExtraInfo con la percentuale
-                txtExtraInfo.Text = $"{percent:F2}% di DVD 4,7GB";
-
-                // 🔑 Aggiorna la ProgressBarSize con la percentuale
+                // 🔑 Aggiorna la ProgressBarSize e il testo sovrapposto
                 progressBarSize.Value = Math.Min(percent, 100); // max 100 per non uscire dai limiti
+                progressBarSizeText.Text = $"{percent:F2}% di DVD 4,7GB";
 
                 // ⚠️ Avviso se supera la capacità del DVD-5
                 if (percent > 100.0)
@@ -164,6 +162,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
 
         // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella locale
         private long GetDirectorySize(DirectoryInfo dir)
@@ -290,6 +289,7 @@ namespace IsoCreatorWpf
                 Tag = fullPath
             };
         }
+
         private void btnSelectDest_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new CommonOpenFileDialog
@@ -304,6 +304,7 @@ namespace IsoCreatorWpf
                 txtDestFolder.Text = destFolder;
             }
         }
+
         private async void btnCreateIso_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(sourceFolder) || !Directory.Exists(sourceFolder))
@@ -433,14 +434,18 @@ namespace IsoCreatorWpf
                     FileInfo fi = new FileInfo(currentIsoPath);
                     long sizeBytes = fi.Length;
 
+                    // Aggiorna dimensione totale
                     txtTotalSize.Text = FormatSize(sizeBytes);
 
-                    const long dvd5CapacityBytes = 4700000000;
+                    // 🔑 Calcola percentuale rispetto a DVD-5
+                    const long dvd5CapacityBytes = 4700000000; // 4,7 GB
                     double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
 
-                    txtExtraInfo.Text = $"{percent:F2}% di DVD 4,7GB";
+                    // 🔑 Aggiorna ProgressBar e testo sovrapposto
                     progressBarSize.Value = Math.Min(percent, 100);
+                    progressBarSizeText.Text = $"{percent:F2}% di DVD 4,7GB";
 
+                    // ⚠️ Avviso se supera la capacità
                     if (percent > 100.0)
                     {
                         MessageBox.Show("Attenzione: l'ISO supera la capacità di un DVD-5 (4,7 GB). " +
@@ -454,6 +459,7 @@ namespace IsoCreatorWpf
 
                         isoTreeView.Items.Clear();
 
+                        // Root ISO (icona + nome file)
                         StackPanel rootPanel = new StackPanel { Orientation = Orientation.Horizontal };
                         rootPanel.Children.Add(new Image
                         {
@@ -566,6 +572,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
         public class IsoEntry
         {
             public string Name { get; set; }
@@ -734,6 +741,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
         private string GetIconForExtension(string ext)
         {
             ext = ext.ToLower();

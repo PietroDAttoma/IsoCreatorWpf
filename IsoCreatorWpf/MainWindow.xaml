@@ -31,21 +31,15 @@
                      Grid.Column="3" VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- Nome file ISO + Total Size + TextBox + ProgressBar -->
+        <!-- Nome file ISO + Total Size + ProgressBar con testo -->
         <Grid Grid.Row="2" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <!-- Label Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- TextBox Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Label Total Size -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- TextBox Total Size -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Nuovo TextBox -->
                 <ColumnDefinition Width="*"/>
-                <!-- ProgressBar -->
             </Grid.ColumnDefinitions>
 
             <Label Content="Nome ISO:" Width="80" Grid.Column="0" VerticalAlignment="Center"/>
@@ -55,14 +49,19 @@
             <TextBox x:Name="txtTotalSize" Text="0Kb" Width="80" Height="22"
                      IsReadOnly="True" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,5,0"/>
 
-            <!-- Nuovo TextBox tra TotalSize e ProgressBar -->
-            <TextBox x:Name="txtExtraInfo" Text="Info" Width="130" Height="22"
-                     IsReadOnly="True" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,5,0"/>
-
-            <!-- ProgressBarSize spostata a destra -->
-            <ProgressBar x:Name="progressBarSize" Grid.Column="5" Height="20"
-                         Minimum="0" Maximum="100" VerticalAlignment="Center"
-                         HorizontalAlignment="Stretch" Margin="5,0,0,0"/>
+            <!-- ProgressBar con testo sovrapposto -->
+            <Grid Grid.Column="4" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Center">
+                <ProgressBar x:Name="progressBarSize"
+                             Minimum="0" Maximum="100"
+                             VerticalAlignment="Stretch"
+                             HorizontalAlignment="Stretch"/>
+                <TextBlock x:Name="progressBarSizeText"
+                           Text="0%"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="Black"
+                           FontWeight="Bold"/>
+            </Grid>
         </Grid>
 
         <!-- Bottoni + Folder Size + ProgressBarFolder -->
