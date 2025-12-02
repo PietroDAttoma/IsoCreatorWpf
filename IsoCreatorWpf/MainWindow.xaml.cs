@@ -588,42 +588,32 @@ namespace IsoCreatorWpf
             {
                 detailsListView.Items.Clear();
 
+                string entryPath = selectedItem.Tag as string;
+
                 // 🔎 Caso: root del TreeView
                 if (selectedItem == isoTreeView.Items[0])
                 {
+                    // Caso cartella sorgente
                     if (!string.IsNullOrEmpty(sourceFolder) && Directory.Exists(sourceFolder))
                     {
-                        string displayName = Path.GetFileName(sourceFolder);
-                        if (string.IsNullOrEmpty(displayName))
-                            displayName = sourceFolder;
-
-                        string iconPath = "pack://application:,,,/Images/folder.png";
-
-                        detailsListView.Items.Add(new IsoEntry
-                        {
-                            Name = displayName,
-                            Type = "Cartella",
-                            Size = FormatSize(GetDirectorySize(new DirectoryInfo(sourceFolder))),
-                            Icon = iconPath,
-                            EntryPath = sourceFolder
-                        });
+                        ShowContents(sourceFolder);
 
                         long sizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
                         txtFolderSize.Text = FormatSize(sizeBytes);
 
-                        // Percentuale DVD-5
                         const long dvd5CapacityBytes = 4700000000;
                         double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
                         progressBar.Value = Math.Min(percent, 100);
                         return;
                     }
 
+                    // Caso ISO
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                         {
                             CDReader cd = new CDReader(fs, true);
-                            ShowIsoContents(cd, "");
+                            ShowContents("", cd);
                         }
 
                         FileInfo fi = new FileInfo(currentIsoPath);
@@ -638,16 +628,15 @@ namespace IsoCreatorWpf
                 }
 
                 // 🔎 Caso: nodo normale
-                if (selectedItem.Tag is string entryPath)
+                if (!string.IsNullOrEmpty(entryPath))
                 {
-                    // Caso ISO
+                    // Caso ISO → percorsi interni NON hanno ":" (es. "\Piano di Studi")
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath) && !entryPath.Contains(":"))
                     {
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                         {
                             CDReader cd = new CDReader(fs, true);
-
-                            ShowIsoContents(cd, entryPath);
+                            ShowContents(entryPath, cd);
 
                             long sizeBytes = GetIsoDirectorySize(cd, entryPath);
                             txtFolderSize.Text = FormatSize(sizeBytes);
@@ -657,10 +646,10 @@ namespace IsoCreatorWpf
                             progressBar.Value = Math.Min(percent, 100);
                         }
                     }
-                    // Caso cartella locale
+                    // Caso cartella locale → percorsi Windows hanno ":" (es. "C:\Users\...")
                     else if (Directory.Exists(entryPath))
                     {
-                        ShowFolderContents(entryPath);
+                        ShowContents(entryPath);
 
                         long sizeBytes = GetDirectorySize(new DirectoryInfo(entryPath));
                         txtFolderSize.Text = FormatSize(sizeBytes);
@@ -673,100 +662,84 @@ namespace IsoCreatorWpf
             }
         }
 
-
-
-        private void ShowFolderContents(string folderPath)
+        private void ShowContents(string entryPath, CDReader cd = null)
         {
             detailsListView.Items.Clear();
 
-            var dirs = Directory.GetDirectories(folderPath).OrderBy(d => Path.GetFileName(d).ToLower());
-            var files = Directory.GetFiles(folderPath).OrderBy(f => Path.GetFileName(f).ToLower());
-
-            foreach (var subEntry in dirs.Concat(files))
+            // Caso ISO → cd non è null e il percorso NON contiene ":"
+            if (cd != null && !entryPath.Contains(":"))
             {
-                bool isDir = Directory.Exists(subEntry);
-                string displayName = Path.GetFileName(subEntry);
+                var subEntries = cd.GetFileSystemEntries(entryPath);
 
-                long size = 0;
-                if (isDir)
+                var dirs = subEntries.Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
+                                     .OrderBy(se => Path.GetFileName(se).ToLower());
+
+                var files = subEntries.Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
+                                      .OrderBy(se => Path.GetFileName(se).ToLower());
+
+                foreach (var subEntry in dirs.Concat(files))
                 {
-                    // 🔑 Calcola la dimensione totale della cartella locale
-                    size = GetDirectorySize(new DirectoryInfo(subEntry));
+                    bool isDir = cd.GetAttributes(subEntry).HasFlag(FileAttributes.Directory);
+
+                    string displayName = Path.GetFileName(subEntry);
+                    if (displayName.Contains(";"))
+                        displayName = displayName.Substring(0, displayName.IndexOf(";"));
+
+                    long size = 0;
+                    if (isDir)
+                    {
+                        size = GetIsoDirectorySize(cd, subEntry);
+                    }
+                    else
+                    {
+                        using (Stream s = cd.OpenFile(subEntry, FileMode.Open))
+                            size = s.Length;
+                    }
+
+                    string sizeText = FormatSize(size);
+                    string ext = Path.GetExtension(displayName);
+                    string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
+                                            : GetIconForExtension(ext);
+
+                    detailsListView.Items.Add(new IsoEntry
+                    {
+                        Name = displayName,
+                        Type = isDir ? "Cartella" : "File",
+                        Size = sizeText,
+                        Icon = iconPath,
+                        EntryPath = subEntry
+                    });
                 }
-                else
+            }
+            // Caso cartella locale
+            else if (Directory.Exists(entryPath))
+            {
+                var dirs = Directory.GetDirectories(entryPath).OrderBy(d => Path.GetFileName(d).ToLower());
+                var files = Directory.GetFiles(entryPath).OrderBy(f => Path.GetFileName(f).ToLower());
+
+                foreach (var subEntry in dirs.Concat(files))
                 {
-                    // 🔑 Dimensione del file
-                    size = new FileInfo(subEntry).Length;
+                    bool isDir = Directory.Exists(subEntry);
+                    string displayName = Path.GetFileName(subEntry);
+
+                    long size = isDir ? GetDirectorySize(new DirectoryInfo(subEntry))
+                                      : new FileInfo(subEntry).Length;
+
+                    string sizeText = FormatSize(size);
+                    string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
+                                            : GetIconForExtension(Path.GetExtension(subEntry));
+
+                    detailsListView.Items.Add(new IsoEntry
+                    {
+                        Name = displayName,
+                        Type = isDir ? "Cartella" : "File",
+                        Size = sizeText,
+                        Icon = iconPath,
+                        EntryPath = subEntry
+                    });
                 }
-
-                // 🔑 Usa la funzione di formattazione KB/MB/GB
-                string sizeText = FormatSize(size);
-
-                string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
-                                        : GetIconForExtension(Path.GetExtension(subEntry));
-
-                detailsListView.Items.Add(new IsoEntry
-                {
-                    Name = displayName,
-                    Type = isDir ? "Cartella" : "File",
-                    Size = sizeText,
-                    Icon = iconPath,
-                    EntryPath = subEntry
-                });
             }
         }
-        private void ShowIsoContents(CDReader cd, string path)
-        {
-            detailsListView.Items.Clear();
-
-            var subEntries = cd.GetFileSystemEntries(path);
-
-            var dirs = subEntries.Where(se => cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
-                                 .OrderBy(se => Path.GetFileName(se).ToLower());
-
-            var files = subEntries.Where(se => !cd.GetAttributes(se).HasFlag(FileAttributes.Directory))
-                                  .OrderBy(se => Path.GetFileName(se).ToLower());
-
-            foreach (var subEntry in dirs.Concat(files))
-            {
-                bool isDir = cd.GetAttributes(subEntry).HasFlag(FileAttributes.Directory);
-
-                string displayName = Path.GetFileName(subEntry);
-
-                // 🔑 Rimuovi suffisso ;1 tipico ISO
-                if (displayName.Contains(";"))
-                    displayName = displayName.Substring(0, displayName.IndexOf(";"));
-
-                long size = 0;
-                if (isDir)
-                {
-                    // 🔑 Calcola la dimensione totale della cartella interna all’ISO
-                    size = GetIsoDirectorySize(cd, subEntry);
-                }
-                else
-                {
-                    using (Stream s = cd.OpenFile(subEntry, FileMode.Open))
-                        size = s.Length;
-                }
-
-                // 🔑 Usa la funzione di formattazione KB/MB/GB
-                string sizeText = FormatSize(size);
-
-                string ext = Path.GetExtension(displayName);
-                string iconPath = isDir ? "pack://application:,,,/Images/folder.png"
-                                        : GetIconForExtension(ext);
-
-                detailsListView.Items.Add(new IsoEntry
-                {
-                    Name = displayName,
-                    Type = isDir ? "Cartella" : "File",
-                    Size = sizeText,
-                    Icon = iconPath,
-                    EntryPath = subEntry
-                });
-            }
-        }
-
         private string GetIconForExtension(string ext)
         {
             ext = ext.ToLower();
