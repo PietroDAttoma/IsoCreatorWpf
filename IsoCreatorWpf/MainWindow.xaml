@@ -6,7 +6,9 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <!-- rigo 2 -->
             <RowDefinition Height="Auto"/>
+            <!-- rigo 3 -->
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -31,15 +33,25 @@
                      Grid.Column="3" VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- Nome file ISO + Total Size + ProgressBar con testo -->
+        <!-- Nome file ISO + Total Size + ProgressBarSize + Folder Size + ProgressBar -->
         <Grid Grid.Row="2" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
+                <!-- Label Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Nome ISO -->
                 <ColumnDefinition Width="Auto"/>
+                <!-- Label Total Size -->
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Total Size -->
                 <ColumnDefinition Width="*"/>
+                <!-- ProgressBarSize dimezzata -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Label Folder Size -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- TextBox Folder Size -->
+                <ColumnDefinition Width="*"/>
+                <!-- ProgressBar Folder -->
             </Grid.ColumnDefinitions>
 
             <Label Content="Nome ISO:" Width="80" Grid.Column="0" VerticalAlignment="Center"/>
@@ -49,8 +61,8 @@
             <TextBox x:Name="txtTotalSize" Text="0Kb" Width="80" Height="22"
                      IsReadOnly="True" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,5,0"/>
 
-            <!-- ProgressBar con testo sovrapposto -->
-            <Grid Grid.Column="4" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Center">
+            <!-- ProgressBar con testo sovrapposto (ISO) dimezzata -->
+            <Grid Grid.Column="4" Height="20" VerticalAlignment="Center">
                 <ProgressBar x:Name="progressBarSize"
                              Minimum="0" Maximum="100"
                              VerticalAlignment="Stretch"
@@ -62,17 +74,32 @@
                            Foreground="Black"
                            FontWeight="Bold"/>
             </Grid>
+
+            <!-- Folder Size + ProgressBar spostati qui -->
+            <Label Content="Folder Size:" Width="80" Grid.Column="5" VerticalAlignment="Center" Margin="20,0,5,0"/>
+            <TextBox x:Name="txtFolderSize" Text="0Kb" Width="80" Height="22"
+                     IsReadOnly="True" VerticalAlignment="Center" Grid.Column="6" Margin="0,0,5,0"/>
+
+            <Grid Grid.Column="7" Height="20" VerticalAlignment="Center">
+                <ProgressBar x:Name="progressBar"
+                             Minimum="0" Maximum="100"
+                             VerticalAlignment="Stretch"
+                             HorizontalAlignment="Stretch"/>
+                <TextBlock x:Name="progressBarText"
+                           Text="0%"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="Black"
+                           FontWeight="Bold"/>
+            </Grid>
         </Grid>
 
-        <!-- Bottoni + Folder Size + ProgressBarFolder -->
+        <!-- Bottoni su rigo 3 -->
         <Grid Grid.Row="3" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <Button x:Name="btnSelectSource" Content="Sorgente" Width="95" Height="30"
@@ -81,16 +108,6 @@
                     Grid.Column="1" HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnCreateIso_Click"/>
             <Button x:Name="btnOpenIso" Content="Apri ISO" Width="95" Height="30"
                     Grid.Column="2" HorizontalAlignment="Left" Margin="10,0,0,0" Click="btnOpenIso_Click"/>
-
-            <Label Content="Folder Size:" Width="80" VerticalAlignment="Center" Margin="20,0,5,0"
-                   Grid.Column="3"/>
-            <TextBox x:Name="txtFolderSize" Text="0Kb" Width="80" Height="22"
-                     IsReadOnly="True" VerticalAlignment="Center" Grid.Column="4" Margin="0,0,5,0"/>
-
-            <!-- ProgressBarFolder ancorata a destra -->
-            <ProgressBar x:Name="progressBar" Grid.Column="5" Height="20"
-                         Minimum="0" Maximum="100" VerticalAlignment="Center"
-                         HorizontalAlignment="Stretch" Margin="0,0,0,0"/>
         </Grid>
 
         <!-- Area divisa in due colonne -->
