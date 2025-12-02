@@ -580,6 +580,7 @@ namespace IsoCreatorWpf
             public string Icon { get; set; }   // Percorso icona
             public string EntryPath { get; set; } // Percorso interno ISO
         }
+
         // Evento scatenato quando l'utente seleziona un nodo nel TreeView (isoTreeView)
         private void isoTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
@@ -602,15 +603,18 @@ namespace IsoCreatorWpf
                         {
                             Name = displayName,
                             Type = "Cartella",
-                            // 🔑 Calcola e mostra la dimensione della cartella sorgente
                             Size = FormatSize(GetDirectorySize(new DirectoryInfo(sourceFolder))),
                             Icon = iconPath,
                             EntryPath = sourceFolder
                         });
 
-                        // 🔑 Dimensione cartella sorgente
                         long sizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
                         txtFolderSize.Text = FormatSize(sizeBytes);
+
+                        // Percentuale DVD-5
+                        const long dvd5CapacityBytes = 4700000000;
+                        double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                        progressBar.Value = Math.Min(percent, 100);
                         return;
                     }
 
@@ -622,9 +626,13 @@ namespace IsoCreatorWpf
                             ShowIsoContents(cd, "");
                         }
 
-                        // 🔑 Dimensione totale ISO
                         FileInfo fi = new FileInfo(currentIsoPath);
-                        txtFolderSize.Text = FormatSize(fi.Length);
+                        long sizeBytes = fi.Length;
+                        txtFolderSize.Text = FormatSize(sizeBytes);
+
+                        const long dvd5CapacityBytes = 4700000000;
+                        double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                        progressBar.Value = Math.Min(percent, 100);
                         return;
                     }
                 }
@@ -633,18 +641,20 @@ namespace IsoCreatorWpf
                 if (selectedItem.Tag is string entryPath)
                 {
                     // Caso ISO
-                    if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
+                    if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath) && !entryPath.Contains(":"))
                     {
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
                         {
                             CDReader cd = new CDReader(fs, true);
 
-                            // Mostra i contenuti della cartella interna all’ISO
                             ShowIsoContents(cd, entryPath);
 
-                            // 🔑 Calcola dimensione della cartella interna all’ISO
                             long sizeBytes = GetIsoDirectorySize(cd, entryPath);
                             txtFolderSize.Text = FormatSize(sizeBytes);
+
+                            const long dvd5CapacityBytes = 4700000000;
+                            double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                            progressBar.Value = Math.Min(percent, 100);
                         }
                     }
                     // Caso cartella locale
@@ -652,13 +662,18 @@ namespace IsoCreatorWpf
                     {
                         ShowFolderContents(entryPath);
 
-                        // 🔑 Dimensione cartella locale
                         long sizeBytes = GetDirectorySize(new DirectoryInfo(entryPath));
                         txtFolderSize.Text = FormatSize(sizeBytes);
+
+                        const long dvd5CapacityBytes = 4700000000;
+                        double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                        progressBar.Value = Math.Min(percent, 100);
                     }
                 }
             }
         }
+
+
 
         private void ShowFolderContents(string folderPath)
         {
