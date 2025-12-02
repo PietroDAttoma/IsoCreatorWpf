@@ -422,28 +422,25 @@ namespace IsoCreatorWpf
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                // 🔑 Azzeriamo la cartella sorgente ogni volta che apriamo un ISO
+                sourceFolder = string.Empty;
+                txtSourceFolder.Text = string.Empty;
+
                 currentIsoPath = dialog.FileName;
 
                 try
                 {
-                    // 🔑 Calcola la dimensione totale del file ISO
                     FileInfo fi = new FileInfo(currentIsoPath);
                     long sizeBytes = fi.Length;
 
-                    // Aggiorna la TextBox txtTotalSize con formattazione KB/MB/GB
                     txtTotalSize.Text = FormatSize(sizeBytes);
 
-                    // 🔑 Calcola la percentuale rispetto a un DVD-5 (4,7 GB decimali)
-                    const long dvd5CapacityBytes = 4700000000; // 4,7 GB
+                    const long dvd5CapacityBytes = 4700000000;
                     double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
 
-                    // Aggiorna la TextBox txtExtraInfo con la percentuale
                     txtExtraInfo.Text = $"{percent:F2}% di DVD 4,7GB";
+                    progressBarSize.Value = Math.Min(percent, 100);
 
-                    // 🔑 Aggiorna la ProgressBarSize con la percentuale
-                    progressBarSize.Value = Math.Min(percent, 100); // max 100 per non uscire dai limiti
-
-                    // ⚠️ Avviso se supera la capacità del DVD-5
                     if (percent > 100.0)
                     {
                         MessageBox.Show("Attenzione: l'ISO supera la capacità di un DVD-5 (4,7 GB). " +
@@ -457,7 +454,6 @@ namespace IsoCreatorWpf
 
                         isoTreeView.Items.Clear();
 
-                        // Root ISO (icona + nome file)
                         StackPanel rootPanel = new StackPanel { Orientation = Orientation.Horizontal };
                         rootPanel.Children.Add(new Image
                         {
@@ -477,9 +473,7 @@ namespace IsoCreatorWpf
 
                         isoTreeView.Items.Add(rootItem);
 
-                        // 🔑 Popola direttamente la root dell’ISO
                         AddEntries(cd, "", rootItem);
-
                         ExpandFirstLevel(rootItem);
                     }
                 }
