@@ -139,7 +139,7 @@ namespace IsoCreatorWpf
 
                 // 🔑 Aggiorna anche la ProgressBar della cartella e il suo testo
                 progressBar.Value = Math.Min(percent, 100);
-                progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
+                progressBarText.Text = $"{percent:F2}%";
 
                 // ⚠️ Avviso se supera la capacità del DVD-5
                 if (percent > 100.0)
@@ -479,7 +479,7 @@ namespace IsoCreatorWpf
 
                         double percentFolder = (double)folderSizeBytes / isoSizeBytes * 100.0;
                         progressBar.Value = Math.Min(percentFolder, 100);
-                        progressBarText.Text = $"{percentFolder:F2}% della ISO";
+                        progressBarText.Text = $"{percentFolder:F2}%";
 
                         // Colori dinamici della barra cartella
                         if (percentFolder <= 80.0)
@@ -639,23 +639,21 @@ namespace IsoCreatorWpf
                 // 🔎 Caso: root del TreeView
                 if (selectedItem == isoTreeView.Items[0])
                 {
-                    // Caso cartella sorgente
+                    // Caso cartella sorgente (root)
                     if (!string.IsNullOrEmpty(sourceFolder) && Directory.Exists(sourceFolder))
                     {
                         ShowContents(sourceFolder);
 
-                        long sizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
-                        txtFolderSize.Text = FormatSize(sizeBytes);
+                        long totalFolderSize = GetDirectorySize(new DirectoryInfo(sourceFolder));
+                        txtFolderSize.Text = FormatSize(totalFolderSize);
 
-                        const long dvd5CapacityBytes = 4700000000;
-                        double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
-
-                        progressBar.Value = Math.Min(percent, 100);
-                        progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
+                        // Root = 100% della cartella locale
+                        progressBar.Value = 100;
+                        progressBarText.Text = "100,00%";
                         return;
                     }
 
-                    // Caso ISO
+                    // Caso ISO (root)
                     if (!string.IsNullOrEmpty(currentIsoPath) && File.Exists(currentIsoPath))
                     {
                         using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
@@ -665,14 +663,12 @@ namespace IsoCreatorWpf
                         }
 
                         FileInfo fi = new FileInfo(currentIsoPath);
-                        long sizeBytes = fi.Length;
-                        txtFolderSize.Text = FormatSize(sizeBytes);
+                        long isoSizeBytes = fi.Length;
+                        txtFolderSize.Text = FormatSize(isoSizeBytes);
 
-                        const long dvd5CapacityBytes = 4700000000;
-                        double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
-
-                        progressBar.Value = Math.Min(percent, 100);
-                        progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
+                        // Root = 100% dell’ISO
+                        progressBar.Value = 100;
+                        progressBarText.Text = "100,00%";
                         return;
                     }
                 }
@@ -688,14 +684,16 @@ namespace IsoCreatorWpf
                             CDReader cd = new CDReader(fs, true);
                             ShowContents(entryPath, cd);
 
-                            long sizeBytes = GetIsoDirectorySize(cd, entryPath);
-                            txtFolderSize.Text = FormatSize(sizeBytes);
+                            long folderSizeBytes = GetIsoDirectorySize(cd, entryPath);
+                            txtFolderSize.Text = FormatSize(folderSizeBytes);
 
-                            const long dvd5CapacityBytes = 4700000000;
-                            double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                            // 🔑 Percentuale della cartella rispetto alla dimensione totale ISO
+                            FileInfo fi = new FileInfo(currentIsoPath);
+                            long isoSizeBytes = fi.Length;
+                            double percentFolder = (double)folderSizeBytes / isoSizeBytes * 100.0;
 
-                            progressBar.Value = Math.Min(percent, 100);
-                            progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
+                            progressBar.Value = Math.Min(percentFolder, 100);
+                            progressBarText.Text = $"{percentFolder:F2}%";
                         }
                     }
                     // Caso cartella locale → percorsi Windows hanno ":" (es. "C:\\Users\\...")
@@ -703,14 +701,15 @@ namespace IsoCreatorWpf
                     {
                         ShowContents(entryPath);
 
-                        long sizeBytes = GetDirectorySize(new DirectoryInfo(entryPath));
-                        txtFolderSize.Text = FormatSize(sizeBytes);
+                        long folderSizeBytes = GetDirectorySize(new DirectoryInfo(entryPath));
+                        txtFolderSize.Text = FormatSize(folderSizeBytes);
 
-                        const long dvd5CapacityBytes = 4700000000;
-                        double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                        // 🔑 Percentuale della cartella selezionata rispetto alla dimensione totale della cartella sorgente
+                        long totalFolderSize = GetDirectorySize(new DirectoryInfo(sourceFolder));
+                        double percentFolder = (double)folderSizeBytes / totalFolderSize * 100.0;
 
-                        progressBar.Value = Math.Min(percent, 100);
-                        progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
+                        progressBar.Value = Math.Min(percentFolder, 100);
+                        progressBarText.Text = $"{percentFolder:F2}%";
                     }
                 }
             }
