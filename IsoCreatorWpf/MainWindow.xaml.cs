@@ -137,6 +137,10 @@ namespace IsoCreatorWpf
                 progressBarSize.Value = Math.Min(percent, 100); // max 100 per non uscire dai limiti
                 progressBarSizeText.Text = $"{percent:F2}% di DVD 4,7GB";
 
+                // 🔑 Aggiorna anche la ProgressBar della cartella e il suo testo
+                progressBar.Value = Math.Min(percent, 100);
+                progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
+
                 // ⚠️ Avviso se supera la capacità del DVD-5
                 if (percent > 100.0)
                 {
@@ -163,7 +167,6 @@ namespace IsoCreatorWpf
                 }
             }
         }
-
 
         // 🔎 Funzione di supporto per calcolare la dimensione totale di una cartella locale
         private long GetDirectorySize(DirectoryInfo dir)
@@ -433,25 +436,25 @@ namespace IsoCreatorWpf
                 try
                 {
                     FileInfo fi = new FileInfo(currentIsoPath);
-                    long sizeBytes = fi.Length;
+                    long isoSizeBytes = fi.Length;
 
                     // Aggiorna dimensione totale
-                    txtTotalSize.Text = FormatSize(sizeBytes);
+                    txtTotalSize.Text = FormatSize(isoSizeBytes);
 
                     // 🔑 Calcola percentuale rispetto a DVD-5
                     const long dvd5CapacityBytes = 4700000000; // 4,7 GB
-                    double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+                    double percentIso = (double)isoSizeBytes / dvd5CapacityBytes * 100.0;
 
-                    // 🔑 Aggiorna ProgressBar e testo sovrapposto
-                    progressBarSize.Value = Math.Min(percent, 100);
-                    progressBarSizeText.Text = $"{percent:F2}% di DVD 4,7GB";
+                    // 🔑 Aggiorna ProgressBar ISO e testo sovrapposto
+                    progressBarSize.Value = Math.Min(percentIso, 100);
+                    progressBarSizeText.Text = $"{percentIso:F2}% di DVD 4,7GB";
 
-                    // 🔑 Colori dinamici della barra
-                    if (percent <= 80.0)
+                    // 🔑 Colori dinamici della barra ISO
+                    if (percentIso <= 80.0)
                     {
                         progressBarSize.Foreground = new SolidColorBrush(Colors.Green);
                     }
-                    else if (percent <= 100.0)
+                    else if (percentIso <= 100.0)
                     {
                         progressBarSize.Foreground = new SolidColorBrush(Colors.Orange);
                     }
@@ -461,11 +464,36 @@ namespace IsoCreatorWpf
                     }
 
                     // ⚠️ Avviso se supera la capacità
-                    if (percent > 100.0)
+                    if (percentIso > 100.0)
                     {
                         MessageBox.Show("Attenzione: l'ISO supera la capacità di un DVD-5 (4,7 GB). " +
                                         "È necessario un supporto dual-layer.",
                                         "Capacità superata", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+
+                    // 🔑 Aggiorna anche la ProgressBar della cartella se esiste una sorgente
+                    if (!string.IsNullOrEmpty(sourceFolder) && Directory.Exists(sourceFolder))
+                    {
+                        long folderSizeBytes = GetDirectorySize(new DirectoryInfo(sourceFolder));
+                        txtFolderSize.Text = FormatSize(folderSizeBytes);
+
+                        double percentFolder = (double)folderSizeBytes / isoSizeBytes * 100.0;
+                        progressBar.Value = Math.Min(percentFolder, 100);
+                        progressBarText.Text = $"{percentFolder:F2}% della ISO";
+
+                        // Colori dinamici della barra cartella
+                        if (percentFolder <= 80.0)
+                        {
+                            progressBar.Foreground = new SolidColorBrush(Colors.Green);
+                        }
+                        else if (percentFolder <= 100.0)
+                        {
+                            progressBar.Foreground = new SolidColorBrush(Colors.Orange);
+                        }
+                        else
+                        {
+                            progressBar.Foreground = new SolidColorBrush(Colors.Red);
+                        }
                     }
 
                     using (FileStream fs = new FileStream(currentIsoPath, FileMode.Open, FileAccess.Read))
@@ -505,6 +533,7 @@ namespace IsoCreatorWpf
                 }
             }
         }
+
 
 
         private void AddEntries(CDReader cd, string path, TreeViewItem parentItem)
@@ -620,7 +649,9 @@ namespace IsoCreatorWpf
 
                         const long dvd5CapacityBytes = 4700000000;
                         double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+
                         progressBar.Value = Math.Min(percent, 100);
+                        progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
                         return;
                     }
 
@@ -639,7 +670,9 @@ namespace IsoCreatorWpf
 
                         const long dvd5CapacityBytes = 4700000000;
                         double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+
                         progressBar.Value = Math.Min(percent, 100);
+                        progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
                         return;
                     }
                 }
@@ -660,10 +693,12 @@ namespace IsoCreatorWpf
 
                             const long dvd5CapacityBytes = 4700000000;
                             double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+
                             progressBar.Value = Math.Min(percent, 100);
+                            progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
                         }
                     }
-                    // Caso cartella locale → percorsi Windows hanno ":" (es. "C:\Users\...")
+                    // Caso cartella locale → percorsi Windows hanno ":" (es. "C:\\Users\\...")
                     else if (Directory.Exists(entryPath))
                     {
                         ShowContents(entryPath);
@@ -673,7 +708,9 @@ namespace IsoCreatorWpf
 
                         const long dvd5CapacityBytes = 4700000000;
                         double percent = (double)sizeBytes / dvd5CapacityBytes * 100.0;
+
                         progressBar.Value = Math.Min(percent, 100);
+                        progressBarText.Text = $"{percent:F2}% di DVD 4,7GB";
                     }
                 }
             }
