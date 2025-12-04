@@ -534,8 +534,6 @@ namespace IsoCreatorWpf
             }
         }
 
-
-
         private void AddEntries(CDReader cd, string path, TreeViewItem parentItem)
         {
             foreach (var entry in cd.GetFileSystemEntries(path))
